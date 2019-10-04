@@ -1,8 +1,6 @@
 import numpy as np
 
-max_PRI_jet_num = 4
-
-columns = {
+features = {
     "DER_mass_MMC": 0,
     "DER_mass_transverse_met_lep": 1,
     "DER_mass_vis": 2,
@@ -36,7 +34,7 @@ columns = {
 }
 
 
-PRI_jet_num_columns = {
+PRI_jet_num_features = {
     0: [
         "DER_mass_MMC",
         "DER_mass_transverse_met_lep",
@@ -146,34 +144,155 @@ PRI_jet_num_columns = {
 }
 
 
-def DER_mass_MMC_splitt(y, X, ids):
-    r = X[:, columns["DER_mass_MMC"]] != -999
+def __DER_mass_MMC_split(y, X, ids):
+    """ Splits a "PRI_jet_num" subset into two subsets. One contains the "DER_mass_MMC" feature
+    with defined values and in the other the "DER_mass_MMC" feature is dropped.
 
-    return (y[r], X[r], ids[r]), (y[~r], X[~r, 1:], ids[~r])
+    Parameters
+    ---------
+    y: ndarray
+        The target variables
+    X: ndarray
+        The dataset
+    ids: ndarray
+        The ids
+
+    Returns
+    -------
+    tuple
+        The two subsets
+    """
+
+    # Find the rows in X where the "DER_mass_MMC" feature has the
+    # defined values.
+    r = X[:, features["DER_mass_MMC"]] != -999
+
+    # Create the first subset extracting the rows with the defined
+    # "DER_mass_MMC" feature values. 
+    ds_1 = (y[r], X[r], ids[r])
+
+    # Create the second subset extracting the rows with the undefined
+    # "DER_mass_MMC" feature values and drop the "DER_mass_MMC" feature.
+    ds_2 = (y[~r], X[~r, 1:], ids[~r])
+
+    return ds_1, ds_2
 
 
-def PRI_jet_num_split(y, X, ids):
+def __PRI_jet_num_split(y, X, ids, PRI_jet_num_vals):
+    """ Splits a dataset using the "PRI_jet_num" feature removing the
+    unnecessary nan values.
+
+    Parameters
+    ----------
+    y: ndarray
+        The target variables
+    X: ndarray
+        The dataset
+    ids: ndarray
+        The ids
+    PRI_jet_num_vals:
+        The "PRI_jet_num" values
+
+    Returns
+    -------
+    array
+        Array of tuples each containing subsets of y, X, and ids
+    """
     res = []
 
-    for PRI_jet_num in range(max_PRI_jet_num):
-        r = X[:, columns["PRI_jet_num"]] == PRI_jet_num
-        c = [ columns[column] for column in PRI_jet_num_columns[PRI_jet_num] ]
+    # Iterate over each possible value for "PRI_jet_num".
+    for PRI_jet_num in PRI_jet_num_vals:
+        
+        # Find the rows in X where the "PRI_jet_num" feature has the current
+        # PRI_jet_num value.
+        r = X[:, features["PRI_jet_num"]] == PRI_jet_num
+        
+        # Extract the features measured by the current PRI_jet_num. Discard
+        # the others since they only contain nan values.
+        f = [ features[feature] for feature in PRI_jet_num_features[PRI_jet_num] ]
 
-        set1, set2 = DER_mass_MMC_splitt(y[r], X[r][:, c], ids[r])
+        # Split the dataset further since the "DER_mass_MMC" feature has
+        # too much nan values.
+        ds_1, ds_2 = __DER_mass_MMC_split(y[r], X[r][:, f], ids[r])
 
-        res.append(set1)
-        res.append(set2)
+        # Append the newly created datasets.
+        res.append(ds_1)
+        res.append(ds_2)
 
     return res
 
 
+def PRI_jet_num_split(y, X, ids, combine_vals=False):
+    """ Wrapper around "__PRI_jet_num_split" that does the actual split.
+
+    Parameters
+    ----------
+    y: ndarray
+        The target variables
+    X: ndarray
+        The dataset
+    ids: ndarray
+        The ids
+    combine_vals: boolean
+        Whether to combine values 2 and 3.
+
+    Returns
+    -------
+    array
+        Array of tuples each containing subsets of y, X, and ids
+    """
+
+    # Copy the sets the original data is preserved.
+    y_cpy = np.copy(y)
+    X_cpy = np.copy(X)
+    ids_cpy = np.copy(ids)
+
+    # Combine values 2 and 3 by setting the value 3 to 2.
+    if combine_vals:
+        f = X_cpy[:, features["PRI_jet_num"]]
+        f = np.where(f < 3, f, 2)
+        X_cpy[:, features["PRI_jet_num"]] = f
+
+        return __PRI_jet_num_split(y_cpy, X_cpy, ids_cpy, [0, 1, 2])
+
+    else:
+        return __PRI_jet_num_split(y_cpy, X_cpy, ids_cpy, [0, 1, 2, 3])
+
+
 def standardize(X_train, X_test):
-    mean = np.mean(X_train)
-    X_train = X_train - mean
-    X_test = X_test - mean
+    """ Standardizes the train and test datasets using the mean and
+    stadard deviation vectors from the train dataset.
 
-    std = np.std(X_train)
-    X_train = X_train / std
-    X_test = X_test / std
+    Parameters
+    ----------
+    X_train: ndarray
+        The train dataset
+    X_test: ndarray
+        The test dataset
 
-    return X_train, X_test
+    Returns
+    -------
+    touple
+        Standardized train and test datasets
+    """
+    # Copy the sets the original data is preserved.
+    X_train_cpy = np.copy(X_train)
+    X_test_cpy = np.copy(X_test)
+
+    # Calculate the mean vector from the train dataset.
+    mean = np.mean(X_train_cpy)
+
+    # Subtract the mean vector from the train and test datasets.
+    X_train_cpy = X_train_cpy - mean
+    X_test_cpy = X_test_cpy - mean
+    # Now the features have zero mean.
+
+    # Calculate the standard deviation vector from the train dataset.
+    std = np.std(X_train_cpy)
+
+    # Devide the train and test datasets with the standard deviation vector.
+    X_train_cpy = X_train_cpy / std
+    X_test_cpy = X_test_cpy / std
+    # Now the features have standard deviation of one.
+
+    return X_train_cpy, X_test_cpy
