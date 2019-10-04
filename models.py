@@ -52,7 +52,7 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
 
 
 def compute_loss(y, tx, w):
-    N = y.shape[0]
+    N = tx.shape[0]
 
     e = y - np.matmul(tx, w)
 
@@ -60,7 +60,7 @@ def compute_loss(y, tx, w):
 
 
 def compute_gradient(y, tx, w):
-    N = y.shape[0]
+    N = tx.shape[0]
 
     e = y - np.matmul(tx, w)
 
@@ -68,7 +68,7 @@ def compute_gradient(y, tx, w):
 
 
 def compute_stoch_gradient(y, tx, w):
-    N = y.shape[0]
+    N = tx.shape[0]
 
     e = y - np.matmul(tx, w)
 
