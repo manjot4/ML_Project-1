@@ -44,11 +44,34 @@ def ridge_regression(y, tx, lambda_):
 
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
-    pass
+    losses = []
+    ws = [initial_w]
+    w = initial_w
+
+    for n_iter in range(max_iters):
+        loss = compute_loss_logistic_reg(y, tx, w)
+        grad = compute_gradient_logistic(y, tx, w)
+        w = w - (gamma*grad)
+        ws.append(w)
+        losses.append(loss)
+
+    return losses, ws
+
 
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
-    pass
+    losses = []
+    ws = [initial_w]
+    w = initial_w
+
+    for n_iter in range(max_iters):
+        loss, grad = reg_logistic_regression(y, tx, w, lambda_)
+        w = w - (gamma*grad)
+        ws.append(w)
+        losses.append(loss)
+
+    return losses, ws        
+
 
 
 def compute_loss(y, tx, w):
@@ -73,6 +96,29 @@ def compute_stoch_gradient(y, tx, w):
     e = y - np.matmul(tx, w)
 
     return - 1.0 / N * np.matmul(tx.T, e)
+
+def reg_logistic_regression(y, tx, w, lambda_):
+    N = len(y)
+    loss = compute_loss_logistic_reg(y, tx, w) + (lambda_/2)*(np.matmul(w.T, w))
+    grad = compute_gradient_logistic(y, tx, w) + lambda_*w
+    return loss, grad
+
+# Logistic_Regression_gradient
+def compute_gradient_logistic(y, tx, w):
+    out = sigmoid_fn(np.matmul(tx, w))
+    grad = np.matmul(tx.T, (out-y))
+    return grad
+
+# Logistic_Regression_Loss
+def compute_loss_logistic_reg(y, tx, w):
+    out = sigmoid_fn(np.matmul(tx, w))
+    loss = np.matmul((y.T), np.log(out)) + np.matmul(((1-y).T), np.log(1-out))
+    return -loss 
+
+# Sigmoid Function
+def sigmoid_fn(z):
+    den = 1 + np.exp(-z)
+    return 1.0/den
 
 
 def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
