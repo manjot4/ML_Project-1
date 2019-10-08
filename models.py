@@ -2,37 +2,25 @@ import numpy as np
 
 
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
-    ws = [initial_w]
-    losses = []
     w = initial_w
 
-    for n_iter in range(max_iters):
+    for _ in range(max_iters):
         gradient = compute_gradient(y, tx, w)
         loss = compute_loss(y, tx, w)
-
         w = w - gamma * gradient
 
-        ws.append(w)
-        losses.append(loss)
-
-    return losses, ws
+    return loss, w
 
 
 def least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma):
-    ws = [initial_w]
-    losses = []
     w = initial_w
 
     for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size, max_iters):
         gradient = compute_stoch_gradient(minibatch_y, minibatch_tx, w)
         loss = compute_loss(y, tx, w)
-
         w = w - gamma * gradient
 
-        ws.append(w)
-        losses.append(loss)
-
-    return losses, ws
+    return loss, w
 
 
 def least_squares(y, tx):
