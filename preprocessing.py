@@ -1,5 +1,6 @@
 import numpy as np
 
+# All features names
 features = {
     "DER_mass_MMC": 0,
     "DER_mass_transverse_met_lep": 1,
@@ -33,7 +34,7 @@ features = {
     "PRI_jet_all_pt": 29
 }
 
-
+# Features that particular "PRI_jet_num" measures
 PRI_jet_num_features = {
     0: [
         "DER_mass_MMC",
@@ -242,7 +243,7 @@ def PRI_jet_num_split(y, X, ids, combine_vals=False):
         Array of tuples each containing subsets of y, X, and ids
     """
 
-    # Copy the sets the original data is preserved.
+    # Copy the sets so that the original data is preserved.
     y_cpy = np.copy(y)
     X_cpy = np.copy(X)
     ids_cpy = np.copy(ids)
@@ -275,12 +276,12 @@ def standardize(X_train, X_test):
     touple
         Standardized train and test datasets
     """
-    # Copy the sets the original data is preserved.
+    # Copy the sets so that the original data is preserved.
     X_train_cpy = np.copy(X_train)
     X_test_cpy = np.copy(X_test)
 
     # Calculate the mean vector from the train dataset.
-    mean = np.mean(X_train_cpy)
+    mean = np.mean(X_train_cpy, axis=0)
 
     # Subtract the mean vector from the train and test datasets.
     X_train_cpy = X_train_cpy - mean
@@ -288,7 +289,7 @@ def standardize(X_train, X_test):
     # Now the features have zero mean.
 
     # Calculate the standard deviation vector from the train dataset.
-    std = np.std(X_train_cpy)
+    std = np.std(X_train_cpy, axis=0)
 
     # Devide the train and test datasets with the standard deviation vector.
     X_train_cpy = X_train_cpy / std
@@ -296,3 +297,89 @@ def standardize(X_train, X_test):
     # Now the features have standard deviation of one.
 
     return X_train_cpy, X_test_cpy
+
+
+def minmax_normalize(X_train, X_test):
+    """ Normalizes the train and test datasets using the min and
+    max vectors from the train dataset.
+
+    Parameters
+    ----------
+    X_train: ndarray
+        The train dataset
+    X_test: ndarray
+        The test dataset
+
+    Returns
+    -------
+    touple
+        Normalized train and test datasets
+    """
+    # Copy the sets so that the original data is preserved.
+    X_train_cpy = np.copy(X_train)
+    X_test_cpy = np.copy(X_test)
+
+    # Calculate the min and max vectors from the train dataset.
+    mn = np.min(X_train_cpy, axis=0)
+    mx = np.max(X_train_cpy, axis=0)
+
+    # Subtract the min vector and devide both the train and test
+    # datasets with the difference vector.
+    X_train_cpy = (X_train_cpy - mn) / (mx - mn)
+    X_test_cpy = (X_test_cpy - mn) / (mx - mn)
+
+    return X_train_cpy, X_test_cpy
+
+
+class WrongModeException(Exception): pass
+
+
+def __clean_nan(X, mode):
+    """ Replaces the nan values in X with the calculated value by mode.
+
+    Parameters
+    ----------
+    X: ndarray
+        The dataset
+    mode: function
+        np.mean or np.median
+
+    Returns
+    -------
+    ndarray
+        Cleaned dataset
+    """
+    # Create a mask for the valid values.
+    mask = X != -999
+    # Remove the nan values from X.
+    x = X * mask
+    # Create a matrix that contains only the mean/median values in the
+    # entries where there was nan value in the originl matrix.
+    y = np.ones(X.shape) * ~mask * mode(x[np.nonzero(x)], axis=0)
+    # Add the mean value entries to the matrix.
+    return x + y 
+
+
+def clean_nan(X, mode="mean"):
+    """ Wrapper around the function that replaces the nan values in X
+    with the calculated value by mode.
+
+    Parameters
+    ----------
+    X: ndarray
+        The dataset
+    mode: string
+        "mean" or "median"
+
+    Returns
+    -------
+    ndarray
+        Cleaned dataset
+    """
+    if mode == "mean":
+        return __clean_nan(X, np.mean)
+
+    if mode =="median":
+        return __clean_nan(X, np.median)
+
+    raise WrongModeException
