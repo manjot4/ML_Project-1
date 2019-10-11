@@ -97,11 +97,13 @@ def least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma):
 
 
 def least_squares(y, tx):
-    pass
+    w = np.linalg.solve(tx.T.dot(tx), tx.T.dot(y))
+    return 1 / y.shape[0] * np.sum(np.power(y - tx.dot(w), 2)), w
 
 
 def ridge_regression(y, tx, lambda_):
-    pass
+    w = np.linalg.solve(tx.T.dot(tx) + lambda_ * np.identity(tx.shape[1]), tx.T.dot(y))
+    return 1 / y.shape[0] * np.sum(np.power(y - tx.dot(w), 2)), w
 
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
