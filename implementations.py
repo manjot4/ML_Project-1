@@ -1,26 +1,47 @@
 import numpy as np
+from matplotlib import pyplot as plt
+
+
+__should_plot = True
+
+
+def __plot_loss(losses, title):
+    if __should_plot:
+        plt.plot(losses)
+        plt.title(title)
+        plt.xlabel("Iteration")
+        plt.ylabel("Loss")
+        plt.show()
 
 
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     w = initial_w
+    losses = []
 
     for _ in range(max_iters):
         gradient = compute_gradient(y, tx, w)
         loss = compute_loss(y, tx, w)
         w = w - gamma * gradient
+        losses.append(loss)
 
-    return loss, w
+    __plot_loss(losses, "Least Squares Gradient Descent")
+
+    return losses[-1], w
 
 
 def least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma):
     w = initial_w
+    losses = []
 
     for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size, max_iters):
         gradient = compute_stoch_gradient(minibatch_y, minibatch_tx, w)
         loss = compute_loss(y, tx, w)
         w = w - gamma * gradient
+        losses.append(loss)
 
-    return loss, w
+    __plot_loss(losses, "Least Squares Stochastic Gradient Descent")
+
+    return losses[-1], w
 
 
 def least_squares(y, tx):
