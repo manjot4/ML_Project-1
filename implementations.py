@@ -2,10 +2,20 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 
-__should_plot = True
+# Whether to enable ploting or not
+__should_plot = False
 
 
 def __plot_loss(losses, title):
+    """ Utility function that plots the train losses.
+
+    Parameters
+    ----------
+    losses: array
+        The losses
+    title: string
+        The title of the plot
+    """
     if __should_plot:
         plt.plot(losses)
         plt.title(title)
@@ -15,6 +25,26 @@ def __plot_loss(losses, title):
 
 
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
+    """ Implementation of linear regression using gradient descent.
+
+    Parameters
+    ----------
+    y: ndarray
+        The labels
+    tx: ndarray
+        The feature matrix
+    initial_w: ndarray
+        The initial weight vector
+    max_iters: integer
+        The number of steps to run
+    gamma:
+        The step size
+
+    Returns
+    -------
+    tuple
+        The last loss and learned weights
+    """
     w = initial_w
     losses = []
 
@@ -30,6 +60,28 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
 
 
 def least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma):
+    """ Implementation of linear regression using stochastic gradient descent.
+
+    Parameters
+    ----------
+    y: ndarray
+        The labels
+    tx: ndarray
+        The feature matrix
+    initial_w: ndarray
+        The initial weight vector
+    batch_size: integer
+        The batch size
+    max_iters: integer
+        The number of steps to run
+    gamma:
+        The step size
+
+    Returns
+    -------
+    tuple
+        The last loss and learned weights
+    """
     w = initial_w
     losses = []
 
@@ -84,6 +136,22 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
 
 
 def compute_loss(y, tx, w):
+    """ Computes the loss.
+
+    Parameters
+    ----------
+    y: ndarray
+        The labels
+    tx: ndarray
+        The feature matrix
+    w: ndarray
+        The weight vector
+
+    Returns
+    -------
+    tuple
+        The last loss and learned weights
+    """
     N = tx.shape[0]
 
     e = y - np.matmul(tx, w)
