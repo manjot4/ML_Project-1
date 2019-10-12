@@ -97,13 +97,39 @@ def least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma):
 
 
 def least_squares(y, tx):
-    # TODO: Add comments
+    """ Implementation of the closed form solution for least squares.
+
+    Parameters
+    ----------
+    y: ndarray
+        The labels
+    tx: ndarray
+        The feature matrix
+
+    Returns
+    -------
+    tuple
+        The last loss and optimal weights
+    """
     w = np.linalg.solve(tx.T.dot(tx), tx.T.dot(y))
     return 1 / y.shape[0] * np.sum(np.power(y - tx.dot(w), 2)), w
 
 
 def ridge_regression(y, tx, lambda_):
-    # TODO: Add comments
+    """ Implementation of the closed form solution for ridge regression.
+
+    Parameters
+    ----------
+    y: ndarray
+        The labels
+    tx: ndarray
+        The feature matrix
+
+    Returns
+    -------
+    tuple
+        The last loss and optimal weights
+    """
     w = np.linalg.solve(tx.T.dot(tx) + lambda_ * np.identity(tx.shape[1]), tx.T.dot(y))
     return 1 / y.shape[0] * np.sum(np.power(y - tx.dot(w), 2)), w
 
@@ -221,11 +247,8 @@ def compute_loss_logistic_regression(y, tx, w):
     tuple
         The last loss and learned weights
     """
-    N = tx.shape[0]
-
-    o = sigmoid(np.matmul(tx, w))
-
-    return -1.0 / N * np.sum(y * np.log(o) + (1 - y) * np.log(1 - o))
+    predictions = sigmoid(tx.dot(w))
+    return -(np.log(predictions).T.dot(y) + (1 - np.log(predictions)).T.dot(1 - y))
 
 
 def compute_loss_reg_logistic_regression(y, tx, lambda_, w):
@@ -291,11 +314,8 @@ def compute_gradient_logistic_regression(y, tx, w):
     ndarray
         The gradient
     """
-    N = tx.shape[0]
-
     e = sigmoid(np.matmul(tx, w)) - y
-
-    return 1.0 / N * np.matmul(tx.T, e)
+    return np.matmul(tx.T, e)
 
 
 def compute_gradient_reg_logistic_regression(y, tx, lambda_, w):
