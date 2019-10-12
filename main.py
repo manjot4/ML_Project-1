@@ -9,7 +9,7 @@ test_fname = "data/test.csv"
 y_train, X_train, ids_train = load_csv_data(train_fname)
 y_test, X_test, ids_test = load_csv_data(test_fname)
 
-print("Shapse")
+print("Shapes")
 print(X_train.shape, y_train.shape, ids_train.shape)
 print(X_test.shape, y_test.shape, ids_test.shape)
 print()
