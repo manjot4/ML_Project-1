@@ -9,7 +9,7 @@ from preprocessing import map_0_1, map_minus_1_1
 from implementations import reg_logistic_regression
 from scripts.helpers import load_csv_data
 from scripts.helpers import predict_labels, create_csv_submission
-from cross_validation import best_lambda_selection
+from cross_validation import gamma_lambda_selection_cv
 
 np.random.seed(1)
 
@@ -49,8 +49,9 @@ def sort_arr(ids, y_pred):
     return ids[idx], y_pred[idx]
 
 
-# Cross Validation - range of lambda values
+# Cross Validation 
 lambdas = np.logspace(-4, 0, 30) 
+gammas = np.logspace(-3, 3, 30)
 
 for i in range(num_subsets):
     y_train_subset, X_train_subset, ids_train_subset = train_subsets[i]
@@ -69,7 +70,7 @@ for i in range(num_subsets):
     # need to chose optimal lambda and optimal gamma together
     k_fold = 4 # can experiment with different numbers
     max_iters = 500
-    optimal_lambda_ = best_lambda_selection(y_train_subset, X_train_subset, k_fold, lambdas, initial_w, max_iters, gamma)
+    optimal_lambda_, optimal_gamma = gamma_lambda_selection_cv(y_train_subset, X_train_subset, k_fold, lambdas, initial_w, max_iters, gammas)
 
 
     print(f"Train shape: {str(X_train_subset.shape):>12}   Test shape: {str(X_test_subset.shape):>12}")
