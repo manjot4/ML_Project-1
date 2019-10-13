@@ -388,7 +388,7 @@ def clean_nan(tx, mode="mean"):
 def map_0_1(y):
     y_copy = y.copy()
 
-    y_copy[y_copy == -1] == 0
+    y_copy[y_copy == -1] = 0
 
     return y_copy
 
@@ -396,6 +396,7 @@ def map_0_1(y):
 def map_minus_1_1(y):
     y_copy = y.copy()
 
-    y_copy[y_copy == 0] == -1
+    y_copy[y_copy >= 0.5] = 1
+    y_copy[y_copy < 0.5] = -1
 
     return y_copy
