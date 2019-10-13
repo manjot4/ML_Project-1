@@ -166,7 +166,7 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
 
     __plot_loss(losses, "Logistic Regression using Gradient Descent")
 
-    return losses, w
+    return losses[-1], w
 
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
@@ -203,7 +203,7 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
 
     __plot_loss(losses, "Regularized Logistic Regression using Gradient Descent")
 
-    return losses, w
+    return losses[-1], w
 
 
 def compute_loss_least_squares(y, tx, w):
@@ -248,7 +248,8 @@ def compute_loss_logistic_regression(y, tx, w):
         The last loss and learned weights
     """
     predictions = sigmoid(tx.dot(w))
-    return -(np.log(predictions).T.dot(y) + (1 - np.log(predictions)).T.dot(1 - y))
+    loss = y.T.dot(np.log(predictions+1e-15)) + (1-y).T.dot(np.log(1-predictions + 1e-15)) # need to justify this
+    return -loss
 
 
 def compute_loss_reg_logistic_regression(y, tx, lambda_, w):
@@ -433,3 +434,14 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
         end_index = min((batch_num + 1) * batch_size, data_size)
         if start_index != end_index:
             yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
+
+
+## Build_Polynomial - Basis Function.....
+# def build_poly(tx, degree):
+#     """polynomial basis functions for input data x, for j=0 up to j=degree."""
+#     polynomial = np.ones(tx.shape[0], 1))
+#     for i in range(1, degree+1):
+# #         x_degree = np.power(tx,i)
+#         polynomial = np.c_[polynomial, np.power(tx, i)]
+# #     polynomial = np.sum(polynomial, axis=1)
+#     return polynomial            

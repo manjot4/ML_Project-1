@@ -1,3 +1,6 @@
+# need to wrap main in a function such it runs all possible combinations 
+# need to store optimal gamma and lambda for different possible combinations
+
 import numpy as np
 from preprocessing import PRI_jet_num_split
 from preprocessing import standardize, minmax_normalize
@@ -6,6 +9,7 @@ from preprocessing import map_0_1, map_minus_1_1
 from implementations import reg_logistic_regression
 from scripts.helpers import load_csv_data
 from scripts.helpers import predict_labels, create_csv_submission
+from cross_validation import best_lambda_selection
 
 np.random.seed(1)
 
@@ -44,6 +48,10 @@ def sort_arr(ids, y_pred):
     idx = ids.argsort()
     return ids[idx], y_pred[idx]
 
+
+# Cross Validation - range of lambda values
+lambdas = np.logspace(-4, 0, 30) 
+
 for i in range(num_subsets):
     y_train_subset, X_train_subset, ids_train_subset = train_subsets[i]
     y_test_subset, X_test_subset, ids_test_subset = test_subsets[i]
@@ -57,6 +65,12 @@ for i in range(num_subsets):
     initial_w = np.random.randn(D)
     gamma = gammas[i]
     lambda_ = lambdas_[i]
+
+    # need to chose optimal lambda and optimal gamma together
+    k_fold = 4 # can experiment with different numbers
+    max_iters = 500
+    optimal_lambda_ = best_lambda_selection(y_train_subset, X_train_subset, k_fold, lambdas, initial_w, max_iters, gamma)
+
 
     print(f"Train shape: {str(X_train_subset.shape):>12}   Test shape: {str(X_test_subset.shape):>12}")
     print()
