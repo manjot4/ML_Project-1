@@ -1,4 +1,4 @@
-''' This script does hyperparameter tuning (lambda and gamma) using cross-validation '''
+''' This script does hyperparameter tuning (step size and regularization factor) using cross-validation '''
 
 ''' Importing Libraries '''
 
@@ -8,6 +8,7 @@ from implementations import least_squares_GD, least_squares_SGD, logistic_regres
 from implementations import compute_loss_least_squares, compute_loss_logistic_regression
 from implementations import ridge_regression
 from helpers import predict_labels
+
 
 def build_k_indices(y, k_fold, seed):
     """build k indices for k-fold."""
@@ -20,33 +21,77 @@ def build_k_indices(y, k_fold, seed):
     return np.array(k_indices)
 
 
-def cross_validation(y, tx, k_indices, k, lambda_, initial_w, max_iters, gamma):
+def accuracy(y, tx, w):
+    ny = tx.dot(w)
+    assert ny.shape == y.shape
+    return np.equal(y, ny).astype(int).sum() / y.shape[0]
+
+
+def cross_validation(y, tx, k_indices, k, lambda_, initial_w, max_iters, gamma, model = 'LOG_REG_GD'):
     ''' return the loss for regularised logistic regression for the specific kth-fold '''
     ''' splitting the dataset into k-folds for a particular k-value, 
      kth fold - testing set, (k-1 folds) - training set '''
-    k_test = k_indices[k]
-    k_train = k_indices[(np.arange(k_indices.shape[0]) != k)]
-    k_train = k_train.reshape(-1)
-    x_train = tx[k_train]
-    x_test = tx[k_test]
-    y_train = y[k_train]
-    y_test = y[k_test]
-    # Regularised Logistic Regression, getting weights
-    _, weight = reg_logistic_regression(y_train, x_train, lambda_, initial_w, max_iters, gamma)
-    # calculating loss for train and test data     
-    train_loss = compute_loss_reg_logistic_regression(y_train, x_train, lambda_, weight)
-    test_loss = compute_loss_reg_logistic_regression(y_test, x_test, lambda_, weight)
+    """
+        Executes one fold of CV.
+    """
+    idx_tr, idx_te = np.append(k_indices[: k].ravel(), k_indices[k + 1:].ravel()), k_indices[k]
+    x_train, y_train, x_test, y_test = tx[idx_tr], y[idx_tr], tx[idx_te], y[idx_te]
+    
+    if model == 'MSE_GD':
+        raise NeedToImplement
+    
+    if model == 'MSE_SGD':
+        raise NeedToImplement
+    
+    if model == 'MSE_OPT':
+        raise NeedToImplement
+    
+    if model == 'MSE_OPT_REG':
+        raise NeedToImplement
+    
+    if model == 'LOG_GD':
+        raise NeedToImplement
+    
+    if model == 'LOG_REG_GD':
+        # Regularised Logistic Regression, getting weights
+        _, weight = reg_logistic_regression(y_train, x_train, lambda_, initial_w, max_iters, gamma)
 
-    return train_loss, test_loss
+        # calculating loss for train and test data     
+        train_loss = compute_loss_reg_logistic_regression(y_train, x_train, lambda_, weight)
+        test_loss = compute_loss_reg_logistic_regression(y_test, x_test, lambda_, weight)
+
+        train_ca = accuracy(y_train, x_train, weight)
+        test_ca = accuracy(y_test, x_test, weight)
+        
+        return train_loss, test_loss, train_ca, test_ca
+    
+    if model == 'LOG_REG_SGD':
+        raise NeedToImpelement
+    
+    raise UknownModelError
 
 
-def gamma_lambda_selection_cv(y, tx, k_fold, lambdas, initial_w, max_iters, gammas):
+def total_cross_validation(y, tx, k_fold, initial_w, max_iters, gamma, lambda_, seed = 1):
+    """
+        Performs an entire cross validation, and returns LOSS on TRAINING & TEST, and CA on TRAINING & TEST.
+    """
+    loss_tr, loss_te, ca_tr, ca_te = np.zeros(k_fold), np.zeros(k_fold), np.zeros(k_fold), np.zeros(k_fold)
+    
+    k_indices = build_k_indices(y, k_fold, seed)
+    for k in range(k_fold):
+        loss_tr[k], loss_te[k], ca_tr[k], ca_te[k] \
+            = cross_validation(y, tx, k_indices, k, lambda_, initial_w, max_iters, gamma)
+    
+    return loss_tr.mean(), loss_te.mean(), ca_tr.mean(), ca_te.mean()
+
+
+def gamma_lambda_selection_cv(y, tx, k_fold, initial_w, max_iters, gammas, lambdas, seed = 1, metric = 'CA'):
     """ Implementing cross_validation to hypertune gamma and lambda 
 
     Parameters
     ----------
     y: ndarray
-    	Labels
+        Labels
     tx: ndarray
         Input Matrix
     lambdas: Regularisation Parameter
@@ -62,164 +107,41 @@ def gamma_lambda_selection_cv(y, tx, k_fold, lambdas, initial_w, max_iters, gamm
     tuple
         optimal_lambda_ and optimal_gamma
     """
-
-    seed = 1
+    
     # split data in k fold
-    k_indices = build_k_indices(y, k_fold, seed)
     # list for storing minimum loss values for a particular lambda and gamma
     # and then choosing optimal lambda and gamma value with minimum loss
-    min_loss = []
-    good_lambda = []
+    
+    loss_tr, loss_te = np.zeros((len(gammas), len(lambdas))), np.zeros((len(gammas), len(lambdas)))
+    CA_tr, CA_te = np.zeros((len(gammas), len(lambdas))), np.zeros((len(gammas), len(lambdas)))
     for gamma in range(len(gammas)):
-        log_reg_tr = [] 
-        log_reg_te = []
         for lambda_ in range(len(lambdas)):
-            train_loss = []
-            test_loss = []
-            for k in range(k_fold):
-                train, test = cross_validation(y, tx, k_indices, k, lambdas[lambda_], initial_w, max_iters, gammas[gamma])
-                train_loss.append(train)
-                test_loss.append(test)
-            log_reg_tr.append(np.mean(train_loss))
-            log_reg_te.append(np.mean(test_loss))
-        optimal_lambda_ = lambdas[np.argmin(log_reg_te)]
-        good_lambda.append(optimal_lambda_)
-        min_loss.append(log_reg_te[np.argmin(log_reg_te)])
-    optimal_lambda_ = lambdas[np.argmin(min_loss)] 
-    optimal_gamma = gammas[np.argmin(min_loss)]
-
-    return optimal_lambda_, optimal_gamma
-
+            loss_tr[gamma, lambda_], loss_te[gamma, lambda_], CA_tr[gamma, lambda_], CA_te[gamma, lambda_] \
+                = total_cross_validation(y, tx, k_fold, initial_w, max_iters, gammas[gamma], lambdas[lambda_], seed = seed)
+    
+    loss_idx, CA_idx = (-1, -1), (-1, -1)
+    for i in range(len(gammas)):
+        for j in range(len(lambdas)):
+            if loss_idx[0] == -1 or loss_te[i, j] < loss_te[loss_idx[0], loss_idx[1]]:
+                loss_idx = (i, j)
+            
+            if CA_idx[0] == -1 or CA_te[i, j] > CA_te[CA_idx[0], CA_idx[1]]:
+                CA_idx = (i, j)
+    
+    # get the CA in CA_tr for training and CA_te for test dataset
+    # it is a matrix in [0, len(gammas))x[0, len(lambdas))
+    
+    
+    # return optimal parameters:
+    if metric == 'CA':
+        # - according to MAX CA
+        return gammas[CA_idx[0]], lambdas[CA_idx[1]]
+    
+    if metric == 'LOSS':
+        # - according to MIN LOSS FN
+        return gammas[loss_idx[0]], lambdas[loss_idx[1]]
+    
+    raise UknownMetricException
 
 # This is for graphs, will use the code from exercises - will generate graphs later this week. 
-# cross_validation_visualization(lambdas, log_reg_tr, log_reg_te) - plots from ex4. 
-
-
-
-def cross_validation_single_paramter(y, tx, k_indices, k, parameter, initial_w, max_iters, function):
-    ''' parameter is a hyperparameter which can be either gamma or lambda '''
-    ''' return the loss for a particluar model (function) for the specific kth-fold '''
-    ''' splitting the dataset into k-folds for a particular k-value, 
-     kth fold - testing set, (k-1 folds) - training set '''
-
-    k_test = k_indices[k]
-    k_train = k_indices[(np.arange(k_indices.shape[0]) != k)]
-    k_train = k_train.reshape(-1)
-    x_train = tx[k_train]
-    x_test = tx[k_test]
-    y_train = y[k_train]
-    y_test = y[k_test]
-
-    if str(function) == "least_squares_GD": #optimal gamma
-        gamma = parameter
-        _, weight = least_squares_GD(y_train, x_train, initial_w, max_iters, gamma)
-        train_loss = compute_loss_least_squares(y_train, x_train, weight)
-        test_loss = compute_loss_least_squares(y_test, x_test, weight)
-
-        return train_loss, test_loss
-
-    elif str(function) == "least_squares_SGD": #optimal gamma
-        gamma = parameter
-        batch_size = 1
-        _, weight = least_squares_SGD(y_train, x_train, initial_w, batch_size, max_iters, gamma)
-        train_loss = compute_loss_least_squares(y_train, x_train, weight)
-        test_loss = compute_loss_least_squares(y_test, x_test, weight)
-
-        return train_loss, test_loss
-
-    elif str(function) == "logistic_regression": #optimal gamma
-        gamma = parameter
-        _, weight = logistic_regression(y_train, x_train, initial_w, max_iters, gamma)
-        train_loss = compute_loss_logistic_regression(y_train, x_train, weight)
-        test_loss = compute_loss_logistic_regression(y_test, x_test, weight)
-
-        return train_loss, test_loss
-
-    elif str(function) == "ridge_regression": #optimal lambda_
-        lambda_ = parameter
-        _, weight = ridge_regression(y_train, x_train, lambda_)
-        # train_loss = # add loss for ridge regression please and use (y_train, x_train)
-        # test_loss = # add loss for ridge regression please and use (y_test, x_test)
-
-        return #train_loss, test_loss
-
-
-''' just gamma, only used in 3 models i.e. least_squares_GD, least_squares_SGD, logistic_regression'''
-def optimal_gamma_selection(y, tx, k_fold, initial_w, max_iters, gammas, function):
-    seed = 1
-    # split data in k fold
-    k_indices = build_k_indices(y, k_fold, seed)
-    # define lists to store the loss of training data and test data
-    log_reg_tr = [] 
-    log_reg_te = []
-    for i in range(len(gammas)):
-        train_loss = []
-        test_loss = []
-        for j in range(k_fold):
-            train, test = cross_validation_single_paramter(y, tx, k_indices, j, gammas[i], initial_w, max_iters, function)
-            train_loss.append(train)
-            test_loss.append(test)
-        log_reg_tr.append(np.mean(train_loss))
-        log_reg_te.append(np.mean(test_loss))
-    optimal_gamma_ = gammas[np.argmin(log_reg_te)]     
-    return optimal_gamma_
-
-
-''' optimal lambda_ - only for Ridge Regression''' 
-def optimal_lambda_selection(y, tx, k_fold, initial_w, max_iters, lambdas, function):
-    seed = 1
-    # split data in k fold
-    k_indices = build_k_indices(y, k_fold, seed)
-    # define lists to store the loss of training data and test data
-    log_reg_tr = [] 
-    log_reg_te = []
-    for i in range(len(lambdas)):
-        train_loss = []
-        test_loss = []
-        for j in range(k_fold):
-            train, test = cross_validation_single_paramter(y, tx, k_indices, j, lambdas[i], initial_w, max_iters, function)
-            train_loss.append(train)
-            test_loss.append(test)
-        log_reg_tr.append(np.mean(train_loss))
-        log_reg_te.append(np.mean(test_loss))
-    optimal_lambda_ = lambdas[np.argmin(log_reg_te)]     
-    return optimal_lambda_
-
-
-'''Calculating accuracy'''
-def accuracy(y, tx, weight):
-    predictions = predict_labels(weight, tx)
-    correct_predictions = len(np.intersect1d(y, predictions))
-    acc = float(correct_predictions) / len(y)
-    return acc
-
-def cross_validation_accuracy(y, tx, k, k_indices, weight):
-    '''Calculating accuracy of train and test subset for a particular k-fold'''
-    k_test = k_indices[k]
-    k_train = k_indices[(np.arange(k_indices.shape[0]) != k)]
-    k_train = k_train.reshape(-1)
-    x_train = tx[k_train]
-    x_test = tx[k_test]
-    y_train = y[k_train]
-    y_test = y[k_test]
-    
-    train_accuracy = accuracy(y_train, x_train, weight)
-    test_accuracy = accuracy(y_test, x_test, weight)
-    
-    return train_accuracy, test_accuracy
-
-''' Training accuracy using cross-validation ''' 
-def verifying_accuracy_cv(y, tx, k_fold, weight):
-    seed = 1
-    # split data in k fold
-    k_indices = build_k_indices(y, k_fold, seed)
-    # define lists to store the loss of training data and test data
-    train_accuracy = []
-    test_accuracy = []
-    for j in range(k_fold):
-        train, test = cross_validation_accuracy(y, tx, j, k_indices, weight)
-        train_accuracy.append(train)
-        test_accuracy.append(test)
-    training_accuracy = (np.mean(train_accuracy))
-    testing_accuracy = (np.mean(test_accuracy))
-    return training_accuracy, testing_accuracy
+# cross_validation_visualization(lambdas, log_reg_tr, log_reg_te) - plots from ex4.
