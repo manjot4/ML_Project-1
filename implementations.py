@@ -198,8 +198,8 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     losses = []
 
     for _ in range(max_iters):
-        gradient = compute_gradient_reg_logistic_regression(y, tx, lambda_, w)
-        loss = compute_loss_reg_logistic_regression(y, tx, lambda_, w)
+        gradient = compute_gradient_reg_logistic_regression(y, tx, w, lambda_)
+        loss = compute_loss_reg_logistic_regression(y, tx, w, lambda_)
         w = w - gamma * gradient
         losses.append(loss)
 
@@ -235,8 +235,8 @@ def reg_logistic_regression_L1(y, tx, lambda_, initial_w, max_iters, gamma):
     losses = []
 
     for _ in range(max_iters):
-        gradient = compute_gradient_reg_logistic_regression_L1(y, tx, lambda_, w)
-        loss = compute_loss_reg_logistic_regression_L1(y, tx, lambda_, w)
+        gradient = compute_gradient_reg_logistic_regression_L1(y, tx, w, lambda_)
+        loss = compute_loss_reg_logistic_regression_L1(y, tx, w, lambda_)
         w = w - gamma * gradient
         losses.append(loss)
 
@@ -295,7 +295,7 @@ def compute_loss_logistic_regression(y, tx, w):
     return -loss
 
 
-def compute_loss_reg_logistic_regression(y, tx, lambda_, w):
+def compute_loss_reg_logistic_regression(y, tx, w, lambda_):
     """ Computes the loss for regularized logistic regression.
 
     Parameters
@@ -317,7 +317,7 @@ def compute_loss_reg_logistic_regression(y, tx, lambda_, w):
     return compute_loss_logistic_regression(y, tx, w) + (lambda_ / 2) * np.matmul(w.T, w)
 
 
-def compute_loss_reg_logistic_regression_L1(y, tx, lambda_, w):
+def compute_loss_reg_logistic_regression_L1(y, tx, w, lambda_):
     """ Computes the loss for regularized logistic regression.
 
     Parameters
@@ -384,7 +384,7 @@ def compute_gradient_logistic_regression(y, tx, w):
     return np.matmul(tx.T, e)
 
 
-def compute_gradient_reg_logistic_regression(y, tx, lambda_, w):
+def compute_gradient_reg_logistic_regression(y, tx, w, lambda_):
     """ Computes the gradient for regularized logistic regression.
 
     Parameters
@@ -406,7 +406,7 @@ def compute_gradient_reg_logistic_regression(y, tx, lambda_, w):
     return compute_gradient_logistic_regression(y, tx, w) + lambda_ * w
 
 
-def compute_gradient_reg_logistic_regression_L1(y, tx, lambda_, w):
+def compute_gradient_reg_logistic_regression_L1(y, tx, w, lambda_):
     """ Computes the gradient for regularized logistic regression.
 
     Parameters

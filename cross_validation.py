@@ -3,11 +3,16 @@
 ''' Importing Libraries '''
 
 import numpy as np
-from implementations import reg_logistic_regression, compute_loss_reg_logistic_regression
-from implementations import least_squares_GD, least_squares_SGD, logistic_regression
+
+from implementations import least_squares_GD, least_squares_SGD
+from implementations import least_squares, ridge_regression
+from implementations import logistic_regression, reg_logistic_regression, reg_logistic_regression_L1
+
 from implementations import compute_loss_least_squares, compute_loss_logistic_regression
-from implementations import ridge_regression
+from implementations import compute_loss_reg_logistic_regression, compute_loss_reg_logistic_regression_L1
+
 from helpers import predict_labels
+from preprocessing import map_0_1
 
 
 def build_k_indices(y, k_fold, seed):
@@ -22,12 +27,72 @@ def build_k_indices(y, k_fold, seed):
 
 
 def accuracy(y, tx, w):
-    ny = tx.dot(w)
+    ny = map_0_1(predict_labels(w, tx))
+    
     assert ny.shape == y.shape
+    assert ny.min() == y.min()
+    assert ny.max() == y.max()
+
     return np.equal(y, ny).astype(int).sum() / y.shape[0]
 
 
-def cross_validation(y, tx, k_indices, k, lambda_, initial_w, max_iters, gamma, model = 'LOG_REG_GD'):
+# given a dataset, model, and all possible params, returns the learned weights w.
+def get_model(model, y, tx, initial_w, max_iters, gamma, lambda_, batch_size):
+    if model == 'MSE_GD':
+        _, w = least_squares_GD(y, tx, initial_w, max_iters, gamma)
+        
+    elif model == 'MSE_SGD':
+        _, w = least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma)
+        
+    elif model == 'MSE_OPT':
+        _, w = least_squares(y, tx)
+        
+    elif model == 'MSE_OPT_REG':
+        _, w = ridge_regression(y, tx, lambda_)
+        
+    elif model == 'LOG_GD':
+        _, w = logistic_regression(y, tx, initial_w, max_iters, gamma)
+        
+    elif model == 'LOG_REG_GD':
+        _, w = reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma)
+
+    elif model == 'LOG_REG_L1':
+        _, w = reg_logistic_regression_L1(y, tx, lambda_, initial_w, max_iters, gamma)
+    
+    else:
+        raise UnknownModel
+    
+    return w
+
+
+# given all possible params, return the loss of the model
+def calculate_loss(model, y, tx, w, lambda_):
+    if model == 'MSE_GD':
+        return compute_loss_least_squares(y, tx, w)
+        
+    elif model == 'MSE_SGD':
+        return compute_loss_least_squares(y, tx, w)
+        
+    elif model == 'MSE_OPT':
+        return compute_loss_least_squares(y, tx, w)
+        
+    elif model == 'MSE_OPT_REG':
+        return compute_loss_least_squares(y, tx, w)
+        
+    elif model == 'LOG_GD':
+        return compute_loss_logistic_regression(y, tx, w)
+        
+    elif model == 'LOG_REG_GD':
+        return compute_loss_reg_logistic_regression(y, tx, w, lambda_)
+        
+    elif model == 'LOG_REG_L1':
+        return compute_loss_reg_logistic_regression_L1(y, tx, w, lambda_)
+        
+    else:
+        raise UnknownModel
+
+
+def cross_validation(y, tx, k_indices, k, lambda_, initial_w, max_iters, gamma, batch_size = 1, model = 'LOG_REG_GD'):
     ''' return the loss for regularised logistic regression for the specific kth-fold '''
     ''' splitting the dataset into k-folds for a particular k-value, 
      kth fold - testing set, (k-1 folds) - training set '''
@@ -37,41 +102,20 @@ def cross_validation(y, tx, k_indices, k, lambda_, initial_w, max_iters, gamma, 
     idx_tr, idx_te = np.append(k_indices[: k].ravel(), k_indices[k + 1:].ravel()), k_indices[k]
     x_train, y_train, x_test, y_test = tx[idx_tr], y[idx_tr], tx[idx_te], y[idx_te]
     
-    if model == 'MSE_GD':
-        raise NeedToImplement
+    # get the model weights
+    w = get_model(model, y, tx, initial_w, max_iters, gamma, lambda_, batch_size)
     
-    if model == 'MSE_SGD':
-        raise NeedToImplement
+    # calculate loss
+    train_loss = calculate_loss(model, y_train, x_train, w, lambda_)
+    test_loss = calculate_loss(model, y_test, x_test, w, lambda_)
     
-    if model == 'MSE_OPT':
-        raise NeedToImplement
+    # calculate CA
+    train_ca, test_ca = accuracy(y_train, x_train, w), accuracy(y_test, x_test, w)
     
-    if model == 'MSE_OPT_REG':
-        raise NeedToImplement
-    
-    if model == 'LOG_GD':
-        raise NeedToImplement
-    
-    if model == 'LOG_REG_GD':
-        # Regularised Logistic Regression, getting weights
-        _, weight = reg_logistic_regression(y_train, x_train, lambda_, initial_w, max_iters, gamma)
-
-        # calculating loss for train and test data     
-        train_loss = compute_loss_reg_logistic_regression(y_train, x_train, lambda_, weight)
-        test_loss = compute_loss_reg_logistic_regression(y_test, x_test, lambda_, weight)
-
-        train_ca = accuracy(y_train, x_train, weight)
-        test_ca = accuracy(y_test, x_test, weight)
-        
-        return train_loss, test_loss, train_ca, test_ca
-    
-    if model == 'LOG_REG_SGD':
-        raise NeedToImpelement
-    
-    raise UknownModelError
+    return train_loss, test_loss, train_ca, test_ca
 
 
-def total_cross_validation(y, tx, k_fold, initial_w, max_iters, gamma, lambda_, seed = 1):
+def total_cross_validation(y, tx, k_fold, initial_w, max_iters, gamma, lambda_, seed = 1, batch_size = 1, model = 'LOG_REG_GD'):
     """
         Performs an entire cross validation, and returns LOSS on TRAINING & TEST, and CA on TRAINING & TEST.
     """
@@ -80,12 +124,12 @@ def total_cross_validation(y, tx, k_fold, initial_w, max_iters, gamma, lambda_, 
     k_indices = build_k_indices(y, k_fold, seed)
     for k in range(k_fold):
         loss_tr[k], loss_te[k], ca_tr[k], ca_te[k] \
-            = cross_validation(y, tx, k_indices, k, lambda_, initial_w, max_iters, gamma)
+            = cross_validation(y, tx, k_indices, k, lambda_, initial_w, max_iters, gamma, batch_size = batch_size, model = model)
     
     return loss_tr.mean(), loss_te.mean(), ca_tr.mean(), ca_te.mean()
 
 
-def gamma_lambda_selection_cv(y, tx, k_fold, initial_w, max_iters, gammas, lambdas, seed = 1, metric = 'CA'):
+def gamma_lambda_selection_cv(y, tx, k_fold, initial_w, max_iters, gammas, lambdas, seed = 1, batch_size = 1, metric = 'CA', model = 'LOG_REG_GD'):
     """ Implementing cross_validation to hypertune gamma and lambda 
 
     Parameters
@@ -116,8 +160,9 @@ def gamma_lambda_selection_cv(y, tx, k_fold, initial_w, max_iters, gammas, lambd
     CA_tr, CA_te = np.zeros((len(gammas), len(lambdas))), np.zeros((len(gammas), len(lambdas)))
     for gamma in range(len(gammas)):
         for lambda_ in range(len(lambdas)):
+            print(f"({gamma}, {lambda_})/({len(gammas)}, {len(lambdas)})")
             loss_tr[gamma, lambda_], loss_te[gamma, lambda_], CA_tr[gamma, lambda_], CA_te[gamma, lambda_] \
-                = total_cross_validation(y, tx, k_fold, initial_w, max_iters, gammas[gamma], lambdas[lambda_], seed = seed)
+                = total_cross_validation(y, tx, k_fold, initial_w, max_iters, gammas[gamma], lambdas[lambda_], seed = seed, batch_size = batch_size, model = model)
     
     loss_idx, CA_idx = (-1, -1), (-1, -1)
     for i in range(len(gammas)):
@@ -127,6 +172,9 @@ def gamma_lambda_selection_cv(y, tx, k_fold, initial_w, max_iters, gammas, lambd
             
             if CA_idx[0] == -1 or CA_te[i, j] > CA_te[CA_idx[0], CA_idx[1]]:
                 CA_idx = (i, j)
+    
+    print('CA_te:\n', CA_te)
+    print('LOSS_te:\n', loss_te)
     
     # get the CA in CA_tr for training and CA_te for test dataset
     # it is a matrix in [0, len(gammas))x[0, len(lambdas))
