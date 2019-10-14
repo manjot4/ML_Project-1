@@ -6,6 +6,8 @@ from matplotlib import pyplot as plt
 __should_plot = False
 
 
+# Main functions
+
 def __plot_loss(losses, title):
     """ Utility function that plots the train losses.
 
@@ -201,10 +203,51 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
         w = w - gamma * gradient
         losses.append(loss)
 
-    __plot_loss(losses, "Regularized Logistic Regression using Gradient Descent")
+    __plot_loss(losses, "Regularized (L2) Logistic Regression using Gradient Descent")
 
     return losses[-1], w
 
+
+def reg_logistic_regression_L1(y, tx, lambda_, initial_w, max_iters, gamma):
+    """ Implementation of regularized logistic regression using gradient descent.
+
+    Parameters
+    ----------
+    y: ndarray
+        The labels
+    tx: ndarray
+        The feature matrix
+    lambda_: integer
+        The regularization parameter
+    initial_w: ndarray
+        The initial weight vector
+    max_iters: integer
+        The number of steps to run
+    gamma:
+        The step size
+
+    Returns
+    -------
+    tuple
+        The last loss and learned weights
+    """
+    w = initial_w
+    losses = []
+
+    for _ in range(max_iters):
+        gradient = compute_gradient_reg_logistic_regression_L1(y, tx, lambda_, w)
+        loss = compute_loss_reg_logistic_regression_L1(y, tx, lambda_, w)
+        w = w - gamma * gradient
+        losses.append(loss)
+
+    __plot_loss(losses, "Regularized (L1) Logistic Regression using Gradient Descent")
+
+    return losses[-1], w
+
+
+
+
+# Auxiliary functions
 
 def compute_loss_least_squares(y, tx, w):
     """ Computes the loss for linear regression.
@@ -274,6 +317,28 @@ def compute_loss_reg_logistic_regression(y, tx, lambda_, w):
     return compute_loss_logistic_regression(y, tx, w) + (lambda_ / 2) * np.matmul(w.T, w)
 
 
+def compute_loss_reg_logistic_regression_L1(y, tx, lambda_, w):
+    """ Computes the loss for regularized logistic regression.
+
+    Parameters
+    ----------
+    y: ndarray
+        The labels
+    tx: ndarray
+        The feature matrix
+    lambda_: integer
+        The regularization parameter
+    w: ndarray
+        The weight vector
+
+    Returns
+    -------
+    tuple
+        The last loss and learned weights
+    """
+    return compute_loss_logistic_regression(y, tx, w) + lambda_ * np.sum(np.absolute(w))
+
+
 def compute_gradient_least_squares(y, tx, w):
     """ Computes the gradient for linear regression.
 
@@ -341,6 +406,28 @@ def compute_gradient_reg_logistic_regression(y, tx, lambda_, w):
     return compute_gradient_logistic_regression(y, tx, w) + lambda_ * w
 
 
+def compute_gradient_reg_logistic_regression_L1(y, tx, lambda_, w):
+    """ Computes the gradient for regularized logistic regression.
+
+    Parameters
+    ----------
+    y: ndarray
+        The labels
+    tx: ndarray
+        The feature matrix
+    lambda_: integer
+        The regularization parameter
+    w: ndarray
+        The weight vector
+
+    Returns
+    -------
+    ndarray
+        The gradient
+    """
+    return compute_gradient_logistic_regression(y, tx, w) + lambda_ * np.sign(w)
+
+
 def sigmoid(z):
     return 1.0 / (1 + np.exp(-z))
 
@@ -371,12 +458,25 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
             yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
 
 
-## Build_Polynomial - Basis Function.....
-# def build_poly(tx, degree):
-#     """polynomial basis functions for input data x, for j=0 up to j=degree."""
-#     polynomial = np.ones(tx.shape[0], 1))
-#     for i in range(1, degree+1):
-# #         x_degree = np.power(tx,i)
-#         polynomial = np.c_[polynomial, np.power(tx, i)]
-# #     polynomial = np.sum(polynomial, axis=1)
-#     return polynomial            
+def build_poly(x, degree):
+    """polynomial basis functions for input data x, for j=0 up to j=degree."""
+    
+    """
+    Takes a dataset of N examples and D features (NxD array) and creates polynomials
+    of the features, up to degree 'degree'.
+    
+    The first column is always 1 as it represents all polynomials with degree 0 for all D features.
+    Then the first 'degree' columns represent the polynomials of the first feature, the following 'degree'
+    columns represent the polynomials for the second feature and so on.
+    
+    Thus, the returned dataset has size Nx(1 + D * 'degree').
+    """
+    
+    # handle the case when D = 1
+    if len(x.shape) == 1:
+        x = x.reshape(-1, 1)
+    
+    ret = np.ones((x.shape[0], 1))
+    for i in range(x.shape[1]):
+        ret = np.append(ret, np.array([np.power(x[:, i], j) for j in range(1, degree + 1)]).T, axis = 1)
+    return ret

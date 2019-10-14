@@ -31,7 +31,7 @@ def cross_validation(y, tx, k_indices, k, lambda_, initial_w, max_iters, gamma):
     x_test = tx[k_test]
     y_train = y[k_train]
     y_test = y[k_test]
-	# Regularised Logistic Regression, getting weights
+    # Regularised Logistic Regression, getting weights
     _, weight = reg_logistic_regression(y_train, x_train, lambda_, initial_w, max_iters, gamma)
     # calculating loss for train and test data     
     train_loss = compute_loss_reg_logistic_regression(y_train, x_train, lambda_, weight)
@@ -48,9 +48,9 @@ def gamma_lambda_selection_cv(y, tx, k_fold, lambdas, initial_w, max_iters, gamm
     y: ndarray
     	Labels
     tx: ndarray
-    	Input Matrix
+        Input Matrix
     lambdas: Regularisation Parameter
-    	set of lambdas from which optimal lambda_ is chosen	
+        set of lambdas from which optimal lambda_ is chosen	
     initial_w: ndarray
         The initial weight vector
     max_iters: integer
@@ -71,17 +71,17 @@ def gamma_lambda_selection_cv(y, tx, k_fold, lambdas, initial_w, max_iters, gamm
     min_loss = []
     good_lambda = []
     for gamma in range(len(gammas)):
-    	log_reg_tr = [] 
-    	log_reg_te = []
-    	for lambda_ in range(len(lambdas)):
-    		train_loss = []
-    		test_loss = []
-    		for k in range(k_fold):
-    			train, test = cross_validation(y, tx, k_indices, k, lambdas[lambda_], initial_w, max_iters, gammas[gamma])
-    			train_loss.append(train)
-    			test_loss.append(test)
-    		log_reg_tr.append(np.mean(train_loss))
-        	log_reg_te.append(np.mean(test_loss))	
+        log_reg_tr = [] 
+        log_reg_te = []
+        for lambda_ in range(len(lambdas)):
+            train_loss = []
+            test_loss = []
+            for k in range(k_fold):
+                train, test = cross_validation(y, tx, k_indices, k, lambdas[lambda_], initial_w, max_iters, gammas[gamma])
+                train_loss.append(train)
+                test_loss.append(test)
+            log_reg_tr.append(np.mean(train_loss))
+            log_reg_te.append(np.mean(test_loss))
         optimal_lambda_ = lambdas[np.argmin(log_reg_te)]
         good_lambda.append(optimal_lambda_)
         min_loss.append(log_reg_te[np.argmin(log_reg_te)])
