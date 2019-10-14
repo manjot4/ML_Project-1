@@ -386,17 +386,50 @@ def clean_nan(tx, mode="mean"):
 
 
 def map_0_1(y):
+    """ Maps labels from { -1, 1 } to { 0, 1 }.
+
+    Parameters
+    ----------
+    y: ndarray
+        The labels
+
+    Returns
+    -------
+    ndarray
+        Mapped labels
+    """
+    # Copy the sets so that the original data is preserved.
     y_copy = y.copy()
 
+    # If the value is -1 map it to 0.
     y_copy[y_copy == -1] = 0
 
     return y_copy
 
 
 def map_minus_1_1(y):
+    """ Maps activations from the sigmoid function in the interval of
+    [ 0, 1 ] to { -1, 1 }.
+
+    Parameters
+    ----------
+    y: ndarray
+        The labelsdiscretisize
+
+    Returns
+    -------
+    ndarray
+        Mapped labels
+    """
+    # Copy the sets so that the original data is preserved.
     y_copy = y.copy()
 
+    # The sigmoid function outputs real values in the [ 0, 1 ] interval.
+    # We have to discretize them in { -1, 1 }.
+
+    # If the value is larger or equal than 0.5, map it to 1.    
     y_copy[y_copy >= 0.5] = 1
+    # If the value is smaller than 0.5, map it to -1.
     y_copy[y_copy < 0.5] = -1
 
     return y_copy
