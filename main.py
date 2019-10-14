@@ -6,10 +6,10 @@ from preprocessing import PRI_jet_num_split
 from preprocessing import standardize, minmax_normalize
 from preprocessing import clean_nan
 from preprocessing import map_0_1, map_minus_1_1
-from implementations import reg_logistic_regression
+from implementations import reg_logistic_regression, logistic_regression
 from scripts.helpers import load_csv_data
 from scripts.helpers import predict_labels, create_csv_submission
-from cross_validation import gamma_lambda_selection_cv
+from cross_validation import gamma_lambda_selection_cv, optimal_gamma_selection, optimal_lambda_selection, verifying_accuracy_cv
 
 np.random.seed(1)
 
@@ -50,8 +50,11 @@ def sort_arr(ids, y_pred):
 
 
 # Cross Validation 
-lambdas = np.logspace(-4, 0, 30) 
-gammas = np.logspace(-3, 3, 30)
+lambdas = np.logspace(-4, 0, 30) # if needed, change the space as appropriate
+gammas = np.logspace(-3, 3, 30) # if needed, change the space as appropriate
+
+training_accuracy = []
+testing_accuracy = []
 
 for i in range(num_subsets):
     y_train_subset, X_train_subset, ids_train_subset = train_subsets[i]
@@ -72,16 +75,29 @@ for i in range(num_subsets):
     max_iters = 500
     optimal_lambda_, optimal_gamma = gamma_lambda_selection_cv(y_train_subset, X_train_subset, k_fold, lambdas, initial_w, max_iters, gammas)
 
+    # selecting either gamma or lambda using cross validation
+    # model = 'logistic_regression' #change as appropriate
+    optimal_gamma = optimal_gamma_selection(y_train_subset, X_train_subset, k_fold, initial_w, max_iters, gammas, model)
+    optimal_lambda_ = optimal_lambda_selection(y_train_subset, X_train_subset, k_fold, initial_w, max_iters, lambdas, model)
 
     print(f"Train shape: {str(X_train_subset.shape):>12}   Test shape: {str(X_test_subset.shape):>12}")
     print()
         
     loss, w = reg_logistic_regression(y_train_subset, X_train_subset, lambda_, initial_w, 2000, gamma)
 
-    y_pred_test = np.array(map_minus_1_1(predict_labels(w, X_test_subset)))
+    # accuracy using cross_validation for each subset
+    train_acc, test_acc = verifying_accuracy_cv(y_train, X_train, k_fold, w)
+    training_accuracy.append(train_acc)
+    testing_accuracy.append(test_acc)
+
+    y_pred_test = predict_labels(w, X_test_subset)
 
     ids = np.concatenate((ids, ids_test_subset))
     y_pred = np.concatenate((y_pred, y_pred_test))
+
+
+training_accuracy = sum(training_accuracy)/float(num_subsets)
+testing_accuracy = sum(testing_accuracy)/float(num_subsets)
 
 ids, y_pred = sort_arr(ids, y_pred)
 
