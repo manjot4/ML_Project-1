@@ -282,17 +282,20 @@ def standardize(X_train, X_test):
 
     # Calculate the mean vector from the train dataset.
     mean = np.mean(X_train_cpy, axis=0)
-
-    # Subtract the mean vector from the train and test datasets.
+    # Subtract the mean vector from the train dataset.
     X_train_cpy = X_train_cpy - mean
+
+   # Calculate the mean vector from the test dataset.
+    mean = np.mean(X_test_cpy, axis=0)
+    # Subtract the mean vector from the test dataset.
     X_test_cpy = X_test_cpy - mean
     # Now the features have zero mean.
 
     # Calculate the standard deviation vector from the train dataset.
     std = np.std(X_train_cpy, axis=0)
-
     # Devide the train and test datasets with the standard deviation vector.
     X_train_cpy = X_train_cpy / std
+    std = np.std(X_test_cpy, axis=0)
     X_test_cpy = X_test_cpy / std
     # Now the features have standard deviation of one.
 

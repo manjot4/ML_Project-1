@@ -3,7 +3,8 @@
 ''' Importing Libraries '''
 
 import numpy as np
-
+# from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
 from implementations import least_squares_GD, least_squares_SGD
 from implementations import least_squares, ridge_regression
 from implementations import logistic_regression, reg_logistic_regression, reg_logistic_regression_L1
@@ -11,7 +12,7 @@ from implementations import logistic_regression, reg_logistic_regression, reg_lo
 from implementations import compute_loss_least_squares, compute_loss_logistic_regression
 from implementations import compute_loss_reg_logistic_regression, compute_loss_reg_logistic_regression_L1
 
-from helpers import predict_labels
+from scripts.helpers import predict_labels
 from preprocessing import map_0_1
 
 
@@ -126,7 +127,8 @@ def total_cross_validation(y, tx, k_fold, initial_w, max_iters, gamma, lambda_, 
         loss_tr[k], loss_te[k], ca_tr[k], ca_te[k] \
             = cross_validation(y, tx, k_indices, k, lambda_, initial_w, max_iters, gamma, batch_size = batch_size, model = model)
     
-    return loss_tr.mean(), loss_te.mean(), ca_tr.mean(), ca_te.mean()
+    return loss_tr.mean(), loss_te.mean(), ca_tr.mean(), ca_te.mean()  
+
 
 
 def gamma_lambda_selection_cv(y, tx, k_fold, initial_w, max_iters, gammas, lambdas, seed = 1, batch_size = 1, metric = 'CA', model = 'LOG_REG_GD'):
@@ -189,7 +191,48 @@ def gamma_lambda_selection_cv(y, tx, k_fold, initial_w, max_iters, gammas, lambd
         # - according to MIN LOSS FN
         return gammas[loss_idx[0]], lambdas[loss_idx[1]]
     
-    raise UknownMetricException
+#     raise UknownMetricException
 
-# This is for graphs, will use the code from exercises - will generate graphs later this week. 
-# cross_validation_visualization(lambdas, log_reg_tr, log_reg_te) - plots from ex4.
+
+
+
+def cross_validation_visualization(parameters, loss_tr, loss_te, i, parameter):
+    plt.semilogx(parameters, loss_tr, marker=".", color='b', label='train error')
+    """visualization the curves of loss_tr and loss_te."""
+    
+    plt.semilogx(parameters, loss_te, marker=".", color='r', label='test error')
+    plt.xlabel("lambda")
+    plt.ylabel("Loss")
+    plt.title("cross validation")
+    plt.legend(loc=2)
+    plt.grid(True)
+    fig_name = str(parameter) + str(i)
+#     plt.savefig(fig_name)    
+
+def plotting_graphs(y, tx, k_fold, initial_w, max_iters, gammas, lambdas, optimal_lambda_, optimal_gamma, i, seed = 1, model = 'LOG_REG_GD'):
+       '''plotting graphs between a subset values of lambda, gamma and loss using cross validation'''
+
+    training_losses, testing_losses, training_accuracy, testing_accuracy = [], [], [], []
+    
+    for gamma in range(len(gammas)):
+        loss_tr, loss_te, ca_tr, ca_te = total_cross_validation(y, tx, k_fold, initial_w, max_iters, gammas[gamma], optimal_lambda_, seed = 1, batch_size = 1, model = 'LOG_REG_GD')
+        training_losses.append(loss_tr)
+        testing_losses.append(loss_te)
+        training_accuracy.append(ca_tr)
+        testing_accuracy.append(ca_te)
+    cross_validation_visualization(gammas, training_losses, testing_losses, i, parameter = 'gamma_') # doing only for losses
+    
+    
+    
+    training_losses, testing_losses, training_accuracy, testing_accuracy = [], [], [], []
+    for lambda_ in range(len(lambdas)):
+        loss_tr, loss_te, ca_tr, ca_te = total_cross_validation(y, tx, k_fold, initial_w, max_iters, lambdas[lambda_], optimal_gamma, seed = 1, batch_size = 1, model = 'LOG_REG_GD')
+        training_losses.append(loss_tr)
+        testing_losses.append(loss_te)
+        training_accuracy.append(ca_tr)
+        testing_accuracy.append(ca_te)
+    cross_validation_visualization(lambdas, training_losses, testing_losses, i, parameter = 'lambda_')
+
+
+
+       
