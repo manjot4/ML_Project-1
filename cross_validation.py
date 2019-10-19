@@ -31,8 +31,10 @@ def accuracy(y, tx, w):
     ny = map_0_1(predict_labels(w, tx))
     
     assert ny.shape == y.shape
-    assert ny.min() == y.min()
-    assert ny.max() == y.max()
+    assert y.min() in [0, 1]
+    assert y.max() in [0, 1]
+    assert ny.min() in [0, 1]
+    assert ny.max() in [0, 1]
 
     return np.equal(y, ny).astype(int).sum() / y.shape[0]
 
@@ -104,7 +106,7 @@ def cross_validation(y, tx, k_indices, k, lambda_, initial_w, max_iters, gamma, 
     x_train, y_train, x_test, y_test = tx[idx_tr], y[idx_tr], tx[idx_te], y[idx_te]
     
     # get the model weights
-    w = get_model(model, y, tx, initial_w, max_iters, gamma, lambda_, batch_size)
+    w = get_model(model, y_train, x_train, initial_w, max_iters, gamma, lambda_, batch_size)
     
     # calculate loss
     train_loss = calculate_loss(model, y_train, x_train, w, lambda_)
@@ -175,8 +177,13 @@ def gamma_lambda_selection_cv(y, tx, k_fold, initial_w, max_iters, gammas, lambd
             if CA_idx[0] == -1 or CA_te[i, j] > CA_te[CA_idx[0], CA_idx[1]]:
                 CA_idx = (i, j)
     
+    print('CA_tr:\n', CA_tr)
     print('CA_te:\n', CA_te)
+    print('LOSS_tr:\n', loss_tr)
     print('LOSS_te:\n', loss_te)
+    
+    print('CA_tr:', CA_tr[CA_idx])
+    print('CA_te:', CA_te[CA_idx])
     
     # get the CA in CA_tr for training and CA_te for test dataset
     # it is a matrix in [0, len(gammas))x[0, len(lambdas))
@@ -191,7 +198,7 @@ def gamma_lambda_selection_cv(y, tx, k_fold, initial_w, max_iters, gammas, lambd
         # - according to MIN LOSS FN
         return gammas[loss_idx[0]], lambdas[loss_idx[1]]
     
-#     raise UknownMetricException
+    raise UknownMetricException
 
 
 
@@ -210,8 +217,8 @@ def cross_validation_visualization(parameters, loss_tr, loss_te, i, parameter):
 #     plt.savefig(fig_name)    
 
 def plotting_graphs(y, tx, k_fold, initial_w, max_iters, gammas, lambdas, optimal_lambda_, optimal_gamma, i, seed = 1, model = 'LOG_REG_GD'):
-       '''plotting graphs between a subset values of lambda, gamma and loss using cross validation'''
-
+    '''plotting graphs between a subset values of lambda, gamma and loss using cross validation'''
+        
     training_losses, testing_losses, training_accuracy, testing_accuracy = [], [], [], []
     
     for gamma in range(len(gammas)):
@@ -221,9 +228,7 @@ def plotting_graphs(y, tx, k_fold, initial_w, max_iters, gammas, lambdas, optima
         training_accuracy.append(ca_tr)
         testing_accuracy.append(ca_te)
     cross_validation_visualization(gammas, training_losses, testing_losses, i, parameter = 'gamma_') # doing only for losses
-    
-    
-    
+
     training_losses, testing_losses, training_accuracy, testing_accuracy = [], [], [], []
     for lambda_ in range(len(lambdas)):
         loss_tr, loss_te, ca_tr, ca_te = total_cross_validation(y, tx, k_fold, initial_w, max_iters, lambdas[lambda_], optimal_gamma, seed = 1, batch_size = 1, model = 'LOG_REG_GD')

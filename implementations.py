@@ -290,8 +290,10 @@ def compute_loss_logistic_regression(y, tx, w):
     tuple
         The last loss and learned weights
     """
+    eps = 1e-3
     predictions = sigmoid(tx.dot(w))
-    loss = y.T.dot(np.log(predictions+1e-15)) + (1-y).T.dot(np.log(1-predictions + 1e-15)) # need to justify this
+    assert predictions.min() > -eps # make sure numbers are close to 0
+    loss = y.T.dot(np.log(predictions + eps)) + (1 - y).T.dot(np.log(1 - predictions + eps)) # need to justify this
     return -loss
 
 
@@ -403,7 +405,7 @@ def compute_gradient_reg_logistic_regression(y, tx, w, lambda_):
     ndarray
         The gradient
     """
-    return compute_gradient_logistic_regression(y, tx, w) + lambda_ * w
+    return compute_gradient_logistic_regression(y, tx, w) - lambda_ * w
 
 
 def compute_gradient_reg_logistic_regression_L1(y, tx, w, lambda_):
