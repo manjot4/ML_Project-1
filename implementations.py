@@ -290,8 +290,9 @@ def compute_loss_logistic_regression(y, tx, w):
     tuple
         The last loss and learned weights
     """
-    eps = 1e-3
+    eps = 1e-5
     predictions = sigmoid(tx.dot(w))
+    #print(w)
     assert predictions.min() > -eps # make sure numbers are close to 0
     loss = y.T.dot(np.log(predictions + eps)) + (1 - y).T.dot(np.log(1 - predictions + eps)) # need to justify this
     return -loss
