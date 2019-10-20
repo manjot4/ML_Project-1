@@ -34,13 +34,16 @@ features = {
     "PRI_jet_all_pt": 29
 }
 
+# Inverse mapping of features
+inv_features = {features[k]: k for k in features.keys()}
+
 # Features that particular "PRI_jet_num" measures
 PRI_jet_num_features = {
     0: [
         "DER_mass_MMC",
         "DER_mass_transverse_met_lep",
         "DER_mass_vis",
-        "DER_pt_h",
+        # "DER_pt_h",
         "DER_deltar_tau_lep",
         "DER_pt_tot",
         "DER_sum_pt",
@@ -60,10 +63,10 @@ PRI_jet_num_features = {
         "DER_mass_MMC",
         "DER_mass_transverse_met_lep",
         "DER_mass_vis",
-        "DER_pt_h",
+        # "DER_pt_h",
         "DER_deltar_tau_lep",
         "DER_pt_tot",
-        "DER_sum_pt",
+        # "DER_sum_pt",
         "DER_pt_ratio_lep_tau",
         "DER_met_phi_centrality",
         "PRI_tau_pt",
@@ -75,7 +78,7 @@ PRI_jet_num_features = {
         "PRI_met",
         "PRI_met_phi",
         "PRI_met_sumet",
-        "PRI_jet_leading_pt",
+        # "PRI_jet_leading_pt",
         "PRI_jet_leading_eta",
         "PRI_jet_leading_phi",
         "PRI_jet_all_pt"
@@ -90,7 +93,7 @@ PRI_jet_num_features = {
         "DER_prodeta_jet_jet",
         "DER_deltar_tau_lep",
         "DER_pt_tot",
-        "DER_sum_pt",
+        # "DER_sum_pt",
         "DER_pt_ratio_lep_tau",
         "DER_met_phi_centrality",
         "DER_lep_eta_centrality",
@@ -103,7 +106,7 @@ PRI_jet_num_features = {
         "PRI_met",
         "PRI_met_phi",
         "PRI_met_sumet",
-        "PRI_jet_leading_pt",
+        # "PRI_jet_leading_pt",
         "PRI_jet_leading_eta",
         "PRI_jet_leading_phi",
         "PRI_jet_subleading_pt",
@@ -133,14 +136,14 @@ PRI_jet_num_features = {
         "PRI_lep_phi",
         "PRI_met",
         "PRI_met_phi",
-        "PRI_met_sumet",
-        "PRI_jet_leading_pt",
+        # "PRI_met_sumet",
+        # "PRI_jet_leading_pt",
         "PRI_jet_leading_eta",
         "PRI_jet_leading_phi",
         "PRI_jet_subleading_pt",
         "PRI_jet_subleading_eta",
         "PRI_jet_subleading_phi",
-        "PRI_jet_all_pt"
+        # "PRI_jet_all_pt"
     ]
 }
 
@@ -179,6 +182,24 @@ def __DER_mass_MMC_split(y, tx, ids):
     return ds_1, ds_2
 
 
+# xxTODOxx add description
+def calculate_correlation(f, tx, fname):
+    cov_mat = np.corrcoef(tx)
+    assert cov_mat.shape == (len(f), len(f))
+    
+    cov_pairs = []
+    for i in range(len(f)):
+        for j in range(i + 1, len(f)):
+            cov_pairs.append((inv_features[f[i]], inv_features[f[j]], str(cov_mat[i, j]), abs(cov_mat[i, j])))
+    
+    cov_pairs = sorted(cov_pairs, key = lambda x: x[3], reverse = False)
+    
+    with open('data/' + fname, 'w') as fw:
+        for f_name, s_name, cor, _ in cov_pairs:
+            fw.write('\t'.join([f_name, s_name, cor]) + '\n')
+    return
+
+
 def __PRI_jet_num_split(y, tx, ids, PRI_jet_num_vals):
     """ Splits a dataset using the "PRI_jet_num" feature removing the
     unnecessary nan values.
@@ -211,6 +232,8 @@ def __PRI_jet_num_split(y, tx, ids, PRI_jet_num_vals):
         # Extract the features measured by the current PRI_jet_num. Discard
         # the others since they only contain nan values.
         f = [ features[feature] for feature in PRI_jet_num_features[PRI_jet_num] ]
+        
+        calculate_correlation(f, tx[r][:, f].T, 'corr_' + str(PRI_jet_num) + '_pruned.tsv')
 
         # Split the dataset further since the "DER_mass_MMC" feature has
         # too much nan values.
@@ -289,7 +312,7 @@ def standardize(X_train, X_test):
 
     # Calculate the standard deviation vector from the train dataset.
     std = np.std(X_train_cpy, axis=0)
-    # Devide the train and test datasets with the standard deviation vector.
+    # Divide the train and test datasets with the standard deviation vector.
     X_train_cpy = X_train_cpy / std
     X_test_cpy = X_test_cpy / std
     # Now the features have standard deviation of one.
