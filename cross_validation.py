@@ -25,11 +25,23 @@ def build_k_indices(y, k_fold, seed):
                  for k in range(k_fold)]
     return np.array(k_indices)
 
-'''Computing the accuracy of a model
-   w is a learned weight vector
-   y corresponds to the labels
-   tx is the input '''
 def accuracy(y, tx, w):
+     """ Computing the accuracy of a model
+
+    Parameters
+    ----------
+    y: ndarray
+        The labels
+    tx: ndarray
+        The feature matrix
+    w: ndarray
+        learned weights
+
+    Returns
+    -------
+    accuracy
+        
+    """
     ny = map_0_1(predict_labels(w, tx))
     
     assert ny.shape == y.shape
@@ -41,9 +53,32 @@ def accuracy(y, tx, w):
     return np.equal(y, ny).astype(int).sum() / y.shape[0]
 
 
-''' This function returns the learned weights w (last weight vector) 
-and the corresponding loss function by a given model.  '''
+
 def get_model(model, y, tx, initial_w, max_iters, gamma, lambda_, batch_size):
+    ''' This function returns the learned weights w (last weight vector) 
+        and the corresponding loss function by a given model.
+     Parameters
+    ----------
+    model: ML model
+    y: ndarray
+        The labels
+    tx: ndarray
+        The feature matrix
+    initial_w: ndarray
+        learned weights
+    max_iters: integer
+        The number of steps to run
+    gamma: integer
+        step size
+    lambda_: integer
+        Regularisation parameter
+    batch_size: integer
+        The batch size
+    Returns
+    -------
+    tuple
+        The last loss and learned weights'''
+    
     if model == 'MSE_GD':
         loss, w = least_squares_GD(y, tx, initial_w, max_iters, gamma)
         
@@ -71,8 +106,25 @@ def get_model(model, y, tx, initial_w, max_iters, gamma, lambda_, batch_size):
     return loss, w
 
 
-''' This function uses a loss function to compute the loss '''
+
 def calculate_loss(model, y, tx, w, lambda_):
+    ''' This function uses the loss function to compute the loss
+     Parameters
+    ----------
+    model: ML model
+    y: ndarray
+        The labels
+    tx: ndarray
+        The feature matrix
+    w: ndarray
+        weights
+    lambda_: integer
+        Regularisation parameter
+    Returns
+    -------
+    tuple
+        The loss'''
+    
     if model == 'MSE_GD':
         return compute_loss_least_squares(y, tx, w)
         
@@ -99,12 +151,33 @@ def calculate_loss(model, y, tx, w, lambda_):
 
 
 def cross_validation(y, tx, k_indices, k, lambda_, initial_w, max_iters, gamma, batch_size = 1, model = 'LOG_REG_GD'):
-    ''' returns the loss/accuracy for a given model for the specific kth-fold '''
-    ''' splitting the dataset into k-folds for a particular k-value, 
-     kth fold - testing set, (k-1 folds) - training set '''
-    """
+    '''  Returns the loss/accuracy for a given model for the specific kth-fold 
+     splitting the dataset into k-folds for a particular k-value, 
+     kth fold - testing set, (k-1 folds) - training set 
         Executes one fold of CV.
-    """
+     Parameters
+    ----------
+    y: ndarray
+        The labels
+    tx: ndarray
+        The feature matrix
+    initial_w: ndarray
+        learned weights
+    max_iters: integer
+        The number of steps to run
+    gamma: integer
+        step size
+    lambda_: integer
+        Regularisation parameter
+    batch_size: integer
+        The batch size
+    model: ML model
+    k_indices: for k-fold
+    Returns
+    -------
+    tuple
+        The loss and accuracy'''
+    
     idx_tr, idx_te = np.append(k_indices[: k].ravel(), k_indices[k + 1:].ravel()), k_indices[k]
     x_train, y_train, x_test, y_test = tx[idx_tr], y[idx_tr], tx[idx_te], y[idx_te]
     
@@ -123,7 +196,30 @@ def cross_validation(y, tx, k_indices, k, lambda_, initial_w, max_iters, gamma, 
 
 def total_cross_validation(y, tx, k_fold, initial_w, max_iters, gamma, lambda_, seed = 1, batch_size = 1, model = 'LOG_REG_GD'):
     """
-        Performs an entire cross validation, and returns mean LOSS on TRAINING & TEST and mean accuracy on TRAINING & TEST.
+        Performs an entire cross validation.
+     Parameters
+    ----------
+    y: ndarray
+        The labels
+    tx: ndarray
+        The feature matrix
+    initial_w: ndarray
+        learned weights
+    max_iters: integer
+        The number of steps to run
+    gamma: integer
+        step size
+    lambda_: integer
+        Regularisation parameter
+    batch_size: integer
+        The batch size
+    model: ML model
+    k_indices: for k-fold
+    Returns
+    -------
+    tuple
+        mean LOSS on TRAINING & TEST and mean accuracy on TRAINING & TEST
+    
     """
     loss_tr, loss_te, ca_tr, ca_te = np.zeros(k_fold), np.zeros(k_fold), np.zeros(k_fold), np.zeros(k_fold)
     
@@ -220,7 +316,24 @@ def cross_validation_visualization(parameters, loss_tr, loss_te, i, parameter):
 #     plt.savefig(fig_name)    
 
 def plotting_graphs(y, tx, k_fold, initial_w, max_iters, gammas, lambdas, optimal_lambda_, optimal_gamma, i, seed = 1, model = 'LOG_REG_GD'):
-    '''plotting graphs between a subset values of lambda, gamma and loss using cross validation'''
+    '''plotting graphs between a subset values of lambda, gamma and loss using cross validation
+    Parameters
+    ----------
+    y: ndarray
+        Labels
+    tx: ndarray
+        Input Matrix
+    lambdas: Regularisation Parameter
+        set of lambdas 
+    gammas: step size
+        set of gammas
+    initial_w: ndarray
+        The initial weight vector
+    gamma: The step size
+    lambda_: Regularisation Parameter
+    model: ML_model
+        
+    '''
         
     training_losses, testing_losses, training_accuracy, testing_accuracy = [], [], [], []
     

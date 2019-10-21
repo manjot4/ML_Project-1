@@ -113,7 +113,7 @@ def least_squares(y, tx):
     Returns
     -------
     tuple
-        The last loss and optimal weights
+        The last loss and learned weights
     """
     w = np.linalg.solve(tx.T.dot(tx), tx.T.dot(y))
     return 1 / y.shape[0] * np.sum(np.power(y - tx.dot(w), 2)), w
@@ -132,7 +132,7 @@ def ridge_regression(y, tx, lambda_):
     Returns
     -------
     tuple
-        The last loss and optimal weights
+        The last loss and learned weights
     """
     w = np.linalg.solve(tx.T.dot(tx) + lambda_ * np.identity(tx.shape[1]), tx.T.dot(y))
     return 1 / y.shape[0] * np.sum(np.power(y - tx.dot(w), 2)), w
@@ -266,7 +266,7 @@ def compute_loss_least_squares(y, tx, w):
     Returns
     -------
     tuple
-        The last loss and learned weights
+        Loss
     """
     N = tx.shape[0]
 
@@ -290,13 +290,12 @@ def compute_loss_logistic_regression(y, tx, w):
     Returns
     -------
     tuple
-        The last loss and learned weights
+        Loss
     """
     eps = 1e-5
     predictions = sigmoid(tx.dot(w))
-    #print(w)
     assert predictions.min() > -eps # make sure numbers are close to 0
-    loss = y.T.dot(np.log(predictions + eps)) + (1 - y).T.dot(np.log(1 - predictions + eps)) # need to justify this
+    loss = y.T.dot(np.log(predictions + eps)) + (1 - y).T.dot(np.log(1 - predictions + eps)) 
     return -loss
 
 
@@ -317,13 +316,13 @@ def compute_loss_reg_logistic_regression(y, tx, w, lambda_):
     Returns
     -------
     tuple
-        The last loss and learned weights
+        Loss
     """
     return compute_loss_logistic_regression(y, tx, w) + (lambda_ / 2) * np.matmul(w.T, w)
 
 
 def compute_loss_reg_logistic_regression_L1(y, tx, w, lambda_):
-    """ Computes the loss for regularized logistic regression.
+    """ Computes the loss for regularized logistic regression with L1 norm.
 
     Parameters
     ----------
@@ -339,7 +338,7 @@ def compute_loss_reg_logistic_regression_L1(y, tx, w, lambda_):
     Returns
     -------
     tuple
-        The last loss and learned weights
+        Loss
     """
     return compute_loss_logistic_regression(y, tx, w) + lambda_ * np.sum(np.absolute(w))
 
@@ -434,6 +433,14 @@ def compute_gradient_reg_logistic_regression_L1(y, tx, w, lambda_):
 
 
 def sigmoid(z):
+    """ Computes the sigmoid function.
+    Parameters
+    ----------
+    z: vector
+    Returns
+    -------
+    Sigmoid of input
+    """
     return 1.0 / (1 + np.exp(-z))
 
 
@@ -445,7 +452,6 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
     Data can be randomly shuffled to avoid ordering in the original data messing with the randomness of the minibatches.
     Example of use :
     for minibatch_y, minibatch_tx in batch_iter(y, tx, 32):
-        <DO-SOMETHING>
     """
     data_size = len(y)
 
