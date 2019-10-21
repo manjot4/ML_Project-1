@@ -1,3 +1,5 @@
+""" This file contains the functions used for the preprocessing step """
+
 import numpy as np
 
 # All features names
@@ -182,24 +184,6 @@ def __DER_mass_MMC_split(y, tx, ids):
     return ds_1, ds_2
 
 
-# xxTODOxx add description
-def calculate_correlation(f, tx, fname):
-    cov_mat = np.corrcoef(tx)
-    assert cov_mat.shape == (len(f), len(f))
-    
-    cov_pairs = []
-    for i in range(len(f)):
-        for j in range(i + 1, len(f)):
-            cov_pairs.append((inv_features[f[i]], inv_features[f[j]], str(cov_mat[i, j]), abs(cov_mat[i, j])))
-    
-    cov_pairs = sorted(cov_pairs, key = lambda x: x[3], reverse = False)
-    
-    with open('data/' + fname, 'w') as fw:
-        for f_name, s_name, cor, _ in cov_pairs:
-            fw.write('\t'.join([f_name, s_name, cor]) + '\n')
-    return
-
-
 def __PRI_jet_num_split(y, tx, ids, PRI_jet_num_vals):
     """ Splits a dataset using the "PRI_jet_num" feature removing the
     unnecessary nan values.
@@ -281,6 +265,31 @@ def PRI_jet_num_split(y, tx, ids, combine_vals=False):
 
     else:
         return __PRI_jet_num_split(y_cpy, X_cpy, ids_cpy, [0, 1, 2, 3])
+
+# xxTODOxx
+def calculate_correlation(f, tx, fname):
+    """ Calculates the correlation between feature columns.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
+    """
+    cov_mat = np.corrcoef(tx)
+    assert cov_mat.shape == (len(f), len(f))
+    
+    cov_pairs = []
+    for i in range(len(f)):
+        for j in range(i + 1, len(f)):
+            cov_pairs.append((inv_features[f[i]], inv_features[f[j]], str(cov_mat[i, j]), abs(cov_mat[i, j])))
+    
+    cov_pairs = sorted(cov_pairs, key = lambda x: x[3], reverse = False)
+    
+    with open('data/' + fname, 'w') as fw:
+        for f_name, s_name, cor, _ in cov_pairs:
+            fw.write('\t'.join([f_name, s_name, cor]) + '\n')
 
 
 def standardize(X_train, X_test):
