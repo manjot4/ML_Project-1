@@ -3,7 +3,6 @@
 ''' Importing Libraries '''
 
 import numpy as np
-# from matplotlib import pyplot as plt
 import matplotlib.pyplot as plt
 from implementations import least_squares_GD, least_squares_SGD
 from implementations import least_squares, ridge_regression
@@ -26,7 +25,10 @@ def build_k_indices(y, k_fold, seed):
                  for k in range(k_fold)]
     return np.array(k_indices)
 
-
+'''Computing the accuracy of a model
+   w is a learned weight vector
+   y corresponds to the labels
+   tx is the input '''
 def accuracy(y, tx, w):
     ny = map_0_1(predict_labels(w, tx))
     
@@ -39,36 +41,37 @@ def accuracy(y, tx, w):
     return np.equal(y, ny).astype(int).sum() / y.shape[0]
 
 
-# given a dataset, model, and all possible params, returns the learned weights w.
+''' This function returns the learned weights w (last weight vector) 
+and the corresponding loss function by a given model.  '''
 def get_model(model, y, tx, initial_w, max_iters, gamma, lambda_, batch_size):
     if model == 'MSE_GD':
-        _, w = least_squares_GD(y, tx, initial_w, max_iters, gamma)
+        loss, w = least_squares_GD(y, tx, initial_w, max_iters, gamma)
         
     elif model == 'MSE_SGD':
-        _, w = least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma)
+        loss, w = least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma)
         
     elif model == 'MSE_OPT':
-        _, w = least_squares(y, tx)
+        loss, w = least_squares(y, tx)
         
     elif model == 'MSE_OPT_REG':
-        _, w = ridge_regression(y, tx, lambda_)
+        loss, w = ridge_regression(y, tx, lambda_)
         
     elif model == 'LOG_GD':
-        _, w = logistic_regression(y, tx, initial_w, max_iters, gamma)
+        loss, w = logistic_regression(y, tx, initial_w, max_iters, gamma)
         
     elif model == 'LOG_REG_GD':
-        _, w = reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma)
+        loss, w = reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma)
 
     elif model == 'LOG_REG_L1':
-        _, w = reg_logistic_regression_L1(y, tx, lambda_, initial_w, max_iters, gamma)
+        loss, w = reg_logistic_regression_L1(y, tx, lambda_, initial_w, max_iters, gamma)
     
     else:
         raise UnknownModel
     
-    return w
+    return loss, w
 
 
-# given all possible params, return the loss of the model
+''' This function uses a loss function to compute the loss '''
 def calculate_loss(model, y, tx, w, lambda_):
     if model == 'MSE_GD':
         return compute_loss_least_squares(y, tx, w)
@@ -96,7 +99,7 @@ def calculate_loss(model, y, tx, w, lambda_):
 
 
 def cross_validation(y, tx, k_indices, k, lambda_, initial_w, max_iters, gamma, batch_size = 1, model = 'LOG_REG_GD'):
-    ''' return the loss for regularised logistic regression for the specific kth-fold '''
+    ''' returns the loss/accuracy for a given model for the specific kth-fold '''
     ''' splitting the dataset into k-folds for a particular k-value, 
      kth fold - testing set, (k-1 folds) - training set '''
     """
@@ -120,7 +123,7 @@ def cross_validation(y, tx, k_indices, k, lambda_, initial_w, max_iters, gamma, 
 
 def total_cross_validation(y, tx, k_fold, initial_w, max_iters, gamma, lambda_, seed = 1, batch_size = 1, model = 'LOG_REG_GD'):
     """
-        Performs an entire cross validation, and returns LOSS on TRAINING & TEST, and CA on TRAINING & TEST.
+        Performs an entire cross validation, and returns mean LOSS on TRAINING & TEST and mean accuracy on TRAINING & TEST.
     """
     loss_tr, loss_te, ca_tr, ca_te = np.zeros(k_fold), np.zeros(k_fold), np.zeros(k_fold), np.zeros(k_fold)
     
@@ -205,7 +208,7 @@ def gamma_lambda_selection_cv(y, tx, k_fold, initial_w, max_iters, gammas, lambd
 
 def cross_validation_visualization(parameters, loss_tr, loss_te, i, parameter):
     plt.semilogx(parameters, loss_tr, marker=".", color='b', label='train error')
-    """visualization the curves of loss_tr and loss_te."""
+    """visualization the curves of loss_te."""
     
     plt.semilogx(parameters, loss_te, marker=".", color='r', label='test error')
     plt.xlabel("lambda")

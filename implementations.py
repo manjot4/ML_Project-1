@@ -1,3 +1,5 @@
+'''This script contains implementations (computation of loss, gradient, polynomial building) of all the models used in this project'''
+
 import numpy as np
 from matplotlib import pyplot as plt
 
