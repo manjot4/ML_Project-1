@@ -40,7 +40,7 @@ def accuracy(y, tx, w):
     tx: ndarray
         The feature matrix
     w: ndarray
-        learned weights
+        The learned weights
 
     Returns
     -------
@@ -59,12 +59,12 @@ def accuracy(y, tx, w):
 
 
 def get_model(model, y, tx, initial_w, max_iters, gamma, lambda_, batch_size):
-    """ This function returns the learned weights 'w' (last weight vector) 
-    and the corresponding loss function by a given model.
+    """ Returns the learned weights 'w' (last weight vector) and
+    the corresponding loss function by a given model.
 
     Parameters
     ----------
-    model: ndarray
+    model: string
         The model
     y: ndarray
         The labels
@@ -77,7 +77,7 @@ def get_model(model, y, tx, initial_w, max_iters, gamma, lambda_, batch_size):
     gamma: integer
         The step size
     lambda_: integer
-        Regularization parameter
+        The regularization parameter
     batch_size: integer
         The batch size
 
@@ -118,7 +118,7 @@ def calculate_loss(model, y, tx, w, lambda_):
     
     Parameters
     ----------
-    model: ndarray
+    model: string
         The model
     y: ndarray
         The labels
