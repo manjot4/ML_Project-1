@@ -1,4 +1,4 @@
-'''This script contains implementations (computation of loss, gradient, polynomial building) of all the models used in this project'''
+""" This file contains implementations (loss and gradient computation, and polynomial expansion) for all the models used in the project """
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -434,12 +434,16 @@ def compute_gradient_reg_logistic_regression_L1(y, tx, w, lambda_):
 
 def sigmoid(z):
     """ Computes the sigmoid function.
+
     Parameters
     ----------
     z: vector
+        Input value
+
     Returns
     -------
-    Sigmoid of input
+    integer
+        Sigmoid of input
     """
     return 1.0 / (1 + np.exp(-z))
 
@@ -469,25 +473,38 @@ def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
             yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
 
 
-def build_poly(x, degree):
-    """polynomial basis functions for input data x, for j=0 up to j=degree."""
+def build_poly(x, d):
+    """ Polynomial basis function for input data x and degree from 0 to 'd'.
     
+    Takes a dataset of N examples and D features (NxD array) and creates
+    polynomials of the features up to degree 'd'.
+    
+    The first column is always 1 as it represents all polynomials with
+    degree 0 for all D features. Then the first 'd' columns represent
+    the polynomials of the first feature, the following 'd' columns 
+    represent the polynomials for the second feature and so on.
+    
+    Thus, the returned dataset has size Nx(1 + D * d).
+
+    Parameters
+    ----------
+    x: ndarray
+        The dataset
+    d: integer
+        The degree
+
+    Returns
+    -------
+    ndarray
+        Expanded dataset
     """
-    Takes a dataset of N examples and D features (NxD array) and creates polynomials
-    of the features, up to degree 'degree'.
     
-    The first column is always 1 as it represents all polynomials with degree 0 for all D features.
-    Then the first 'degree' columns represent the polynomials of the first feature, the following 'degree'
-    columns represent the polynomials for the second feature and so on.
-    
-    Thus, the returned dataset has size Nx(1 + D * 'degree').
-    """
-    
-    # handle the case when D = 1
+    # Handle the case when D is equal to 1
     if len(x.shape) == 1:
         x = x.reshape(-1, 1)
     
     ret = np.ones((x.shape[0], 1))
     for i in range(x.shape[1]):
-        ret = np.append(ret, np.array([np.power(x[:, i], j) for j in range(1, degree + 1)]).T, axis = 1)
+        ret = np.append(ret, np.array([np.power(x[:, i], j) for j in range(1, d + 1)]).T, axis = 1)
+
     return ret
