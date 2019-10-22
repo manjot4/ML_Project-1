@@ -9,7 +9,7 @@ from implementations import logistic_regression, reg_logistic_regression, reg_lo
 from implementations import compute_loss_least_squares, compute_loss_logistic_regression
 from implementations import compute_loss_reg_logistic_regression, compute_loss_reg_logistic_regression_L1
 
-from scripts.helpers import predict_labels
+from helpers import predict_labels
 from preprocessing import map_0_1
 
 
@@ -84,33 +84,33 @@ def get_model(model, y, tx, initial_w, max_iters, gamma, lambda_, batch_size):
     Returns
     -------
     tuple
-        The last loss and learned weights
+        The learned weights
     """
     if model == "MSE_GD":
-        loss, w = least_squares_GD(y, tx, initial_w, max_iters, gamma)
+        _, w = least_squares_GD(y, tx, initial_w, max_iters, gamma)
         
     elif model == "MSE_SGD":
-        loss, w = least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma)
+        _, w = least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma)
         
     elif model == "MSE_OPT":
-        loss, w = least_squares(y, tx)
+        _, w = least_squares(y, tx)
         
     elif model == "MSE_OPT_REG":
-        loss, w = ridge_regression(y, tx, lambda_)
+        _, w = ridge_regression(y, tx, lambda_)
         
     elif model == "LOG_GD":
-        loss, w = logistic_regression(y, tx, initial_w, max_iters, gamma)
+        _, w = logistic_regression(y, tx, initial_w, max_iters, gamma)
         
     elif model == "LOG_REG_GD":
-        loss, w = reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma)
+        _, w = reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma)
 
     elif model == "LOG_REG_L1":
-        loss, w = reg_logistic_regression_L1(y, tx, lambda_, initial_w, max_iters, gamma)
+        _, w = reg_logistic_regression_L1(y, tx, lambda_, initial_w, max_iters, gamma)
     
     else:
         raise UnknownModel
     
-    return loss, w
+    return w
 
 
 def calculate_loss(model, y, tx, w, lambda_):
@@ -281,7 +281,7 @@ def gamma_lambda_selection_cv(y, tx, k_fold, initial_w, max_iters, gammas, lambd
     Returns
     -------
     tuple
-        Optimal lambda and optimal gamma
+        Optimal lambda, optimal gamma, CA or loss in traning set, CA or loss in test set
     """
 
     # 1. Split data in k-folds
@@ -319,11 +319,11 @@ def gamma_lambda_selection_cv(y, tx, k_fold, initial_w, max_iters, gammas, lambd
     # Return optimal parameters
     if metric == "CA":
         # According to MAX CA
-        return gammas[CA_idx[0]], lambdas[CA_idx[1]]
+        return gammas[CA_idx[0]], lambdas[CA_idx[1]], CA_tr[CA_idx], CA_te[CA_idx]
     
     if metric == "LOSS":
         # According to MIN LOSS FN
-        return gammas[loss_idx[0]], lambdas[loss_idx[1]]
+        return gammas[loss_idx[0]], lambdas[loss_idx[1]], loss_tr, loss_te
     
     raise UknownMetricException
 
