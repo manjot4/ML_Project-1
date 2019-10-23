@@ -2,11 +2,11 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from implementations import least_squares_GD, least_squares_SGD
+from implementations import least_squares_GD, least_squares_SGD #, least_squares_GD_L1
 from implementations import least_squares, ridge_regression
 from implementations import logistic_regression, reg_logistic_regression, reg_logistic_regression_L1
 
-from implementations import compute_loss_least_squares, compute_loss_logistic_regression
+from implementations import compute_loss_least_squares, compute_loss_logistic_regression #, compute_loss_least_squares_L1
 from implementations import compute_loss_reg_logistic_regression, compute_loss_reg_logistic_regression_L1
 
 from helpers import predict_labels
@@ -107,6 +107,9 @@ def get_model(model, y, tx, initial_w, max_iters, gamma, lambda_, batch_size):
     elif model == "LOG_REG_L1":
         _, w = reg_logistic_regression_L1(y, tx, lambda_, initial_w, max_iters, gamma)
     
+    elif model == "MSE_GD_L1":
+        _, w = least_squares_GD_L1(y, tx, lambda_, initial_w, max_iters, gamma)
+    
     else:
         raise UnknownModel
     
@@ -154,6 +157,9 @@ def calculate_loss(model, y, tx, w, lambda_):
         
     elif model == "LOG_REG_L1":
         return compute_loss_reg_logistic_regression_L1(y, tx, w, lambda_)
+    
+    elif model == "MSE_GD_L1":
+        return compute_loss_least_squares_L1(y, tx, w, lambda_)
         
     else:
         raise UnknownModel

@@ -196,6 +196,7 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     tuple
         The last loss and learned weights
     """
+    
     w = initial_w
     losses = []
 
@@ -206,41 +207,6 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
         losses.append(loss)
 
     __plot_loss(losses, "Regularized (L2) Logistic Regression using Gradient Descent")
-
-    return losses[-1], w
-
-
-def least_squares_GD_L1(y, tx, initial_w, max_iters, gamma):
-    """ Implementation of linear regression using gradient descent.
-
-    Parameters
-    ----------
-    y: ndarray
-        The labels
-    tx: ndarray
-        The feature matrix
-    initial_w: ndarray
-        The initial weight vector
-    max_iters: integer
-        The number of steps to run
-    gamma:
-        The step size
-
-    Returns
-    -------
-    tuple
-        The last loss and learned weights
-    """
-    w = initial_w
-    losses = []
-
-    for _ in range(max_iters):
-        gradient = compute_gradient_least_squares_L1(y, tx, w)
-        loss = compute_loss_least_squares(y, tx, w)
-        w = w - gamma * gradient
-        losses.append(loss)
-
-    __plot_loss(losses, "Least Squares (L1) using Gradient Descent")
 
     return losses[-1], w
 
@@ -400,30 +366,6 @@ def compute_gradient_least_squares(y, tx, w):
     e = y - np.matmul(tx, w)
 
     return - 1.0 / N * np.matmul(tx.T, e)
-
-
-def compute_gradient_least_squares_L1(y, tx, w,lambda_):
-    """ Computes the gradient for linear regression.
-
-    Parameters
-    ----------
-    y: ndarray
-        The labels
-    tx: ndarray
-        The feature matrix
-    w: ndarray
-        The weight vector
-
-    Returns
-    -------
-    ndarray
-        The gradient
-    """
-    N = tx.shape[0]
-
-    e = y - np.matmul(tx, w)
-
-    return - 1.0 / N * np.matmul(tx.T, e) + lambda_ * w
 
 
 def compute_gradient_logistic_regression(y, tx, w):
