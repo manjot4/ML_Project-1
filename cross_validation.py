@@ -2,11 +2,11 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from implementations import least_squares_GD, least_squares_SGD #, least_squares_GD_L1
+from implementations import least_squares_GD, least_squares_SGD, least_squares_GD_L1
 from implementations import least_squares, ridge_regression
 from implementations import logistic_regression, reg_logistic_regression, reg_logistic_regression_L1
 
-from implementations import compute_loss_least_squares, compute_loss_logistic_regression #, compute_loss_least_squares_L1
+from implementations import compute_loss_least_squares, compute_loss_logistic_regression, compute_loss_least_squares_L1
 from implementations import compute_loss_reg_logistic_regression, compute_loss_reg_logistic_regression_L1
 
 from helpers import predict_labels

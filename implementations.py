@@ -249,6 +249,43 @@ def reg_logistic_regression_L1(y, tx, lambda_, initial_w, max_iters, gamma):
 
 
 
+def least_squares_GD_L1(y, tx, lambda_, initial_w, max_iters, gamma):
+    """ Implementation of linear regression using gradient descent.
+
+    Parameters
+    ----------
+    y: ndarray
+        The labels
+    tx: ndarray
+        The feature matrix
+    lambda_: integer
+        The regularization parameter
+    initial_w: ndarray
+        The initial weight vector
+    max_iters: integer
+        The number of steps to run
+    gamma:
+        The step size
+
+    Returns
+    -------
+    tuple
+        The last loss and learned weights
+    """
+    w = initial_w
+    losses = []
+
+    for _ in range(max_iters):
+        gradient = compute_gradient_least_squares_L1(y, tx, lambda_, w)
+        loss = compute_loss_least_squares_L1(y, tx, lambda_, w)
+        w = w - gamma * gradient
+        losses.append(loss)
+
+    __plot_loss(losses, "Least Squares using Gradient Descent")
+
+    return losses[-1], w
+
+
 
 # Auxiliary functions
 
@@ -300,6 +337,7 @@ def compute_loss_logistic_regression(y, tx, w):
     return -loss
 
 
+
 def compute_loss_reg_logistic_regression(y, tx, w, lambda_):
     """ Computes the loss for regularized logistic regression.
 
@@ -342,6 +380,29 @@ def compute_loss_reg_logistic_regression_L1(y, tx, w, lambda_):
         Loss
     """
     return compute_loss_logistic_regression(y, tx, w) + lambda_ * np.sum(np.absolute(w))
+
+
+def compute_loss_least_squares_L1(y, tx, w, lambda_):
+    """ Computes the loss for linear regression.
+
+    Parameters
+    ----------
+    y: ndarray
+        The labels
+    tx: ndarray
+        The feature matrix
+    w: ndarray
+        The weight vector
+    lamda_: integer
+        The regularization parameter
+
+    Returns
+    -------
+    tuple
+        Loss
+    """
+    return compute_loss_least_squares(y, tx, w) + lambda_ * np.sum(np.absolute(w))
+
 
 
 def compute_gradient_least_squares(y, tx, w):
@@ -431,6 +492,28 @@ def compute_gradient_reg_logistic_regression_L1(y, tx, w, lambda_):
         The gradient
     """
     return compute_gradient_logistic_regression(y, tx, w) + lambda_ * np.sign(w)
+
+
+def compute_gradient_least_squares_L1(y, tx, lambda_, w):
+    """ Computes the gradient for linear regression.
+
+    Parameters
+    ----------
+    y: ndarray
+        The labels
+    tx: ndarray
+        The feature matrix
+    w: ndarray
+        The weight vector
+    lambda_: integer
+        The regularization parameter    
+
+    Returns
+    -------
+    ndarray
+        The gradient
+    """
+    return compute_gradient_least_squares(y, tx, w) + lambda_ * np.sign(w)
 
 
 def sigmoid(z):
