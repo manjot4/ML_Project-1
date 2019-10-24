@@ -276,8 +276,8 @@ def least_squares_GD_L1(y, tx, lambda_, initial_w, max_iters, gamma):
     losses = []
 
     for _ in range(max_iters):
-        gradient = compute_gradient_least_squares_L1(y, tx, lambda_, w)
-        loss = compute_loss_least_squares_L1(y, tx, lambda_, w)
+        gradient = compute_gradient_least_squares_L1(y, tx, w, lambda_)
+        loss = compute_loss_least_squares_L1(y, tx, w, lambda_)
         w = w - gamma * gradient
         losses.append(loss)
 
@@ -417,7 +417,7 @@ def compute_gradient_least_squares(y, tx, w):
     w: ndarray
         The weight vector
 
-    Returns
+    Returnsty
     -------
     ndarray
         The gradient
@@ -494,7 +494,7 @@ def compute_gradient_reg_logistic_regression_L1(y, tx, w, lambda_):
     return compute_gradient_logistic_regression(y, tx, w) + lambda_ * np.sign(w)
 
 
-def compute_gradient_least_squares_L1(y, tx, lambda_, w):
+def compute_gradient_least_squares_L1(y, tx, w, lambda_):
     """ Computes the gradient for linear regression.
 
     Parameters
