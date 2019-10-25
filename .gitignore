@@ -126,3 +126,9 @@ dmypy.json
 
 # Large CSV files
 data/*.csv
+
+# Documentation
+documentation/*
+
+# Notebooks
+notebooks/*

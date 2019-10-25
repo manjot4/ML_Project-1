@@ -2,6 +2,6 @@
 
 ## Authors
 
-* Manjot Singh          manjot.singh@epfl.ch
 * Ljupche Milosheski    ljupche.milosheski@epfl.ch
+* Manjot Singh          manjot.singh@epfl.ch
 * Mladen Korunoski      mladen.korunoski@epfl.ch

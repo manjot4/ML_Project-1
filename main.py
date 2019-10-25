@@ -1,104 +1,126 @@
-# need to wrap main in a function such it runs all possible combinations 
-# need to store optimal gamma and lambda for different possible combinations
-
 import numpy as np
+
+from helpers import load_csv_data
+from helpers import predict_labels, create_csv_submission
+
 from preprocessing import PRI_jet_num_split
 from preprocessing import standardize, minmax_normalize
 from preprocessing import clean_nan
 from preprocessing import map_0_1, map_minus_1_1
-from implementations import reg_logistic_regression, logistic_regression
-from scripts.helpers import load_csv_data
-from scripts.helpers import predict_labels, create_csv_submission
-from cross_validation import gamma_lambda_selection_cv, optimal_gamma_selection, optimal_lambda_selection, verifying_accuracy_cv
 
-np.random.seed(1)
+from implementations import build_poly
 
-gammas = [1e-6, 1e-6, 1e-6, 1e-5, 1e-6, 1e-05, 1e-05, 1e-05]
-lambdas_ = [1000.0, 0.001, 100.0, 0.001, 100.0, 100.0, 0.001, 100.0]
+from cross_validation import get_model, calculate_loss, accuracy, total_cross_validation
+from cross_validation import gamma_lambda_selection_cv
+from cross_validation import plotting_graphs
 
-train_fname = "data/train.csv"
-test_fname = "data/test.csv"
-sumbission_fname = "data/submission.csv"
 
-y_train, X_train, ids_train = load_csv_data(train_fname)
-y_test, X_test, ids_test = load_csv_data(test_fname)
+# Set the seed for reproducibility
+np.random.seed(98)
 
-print("Shapes")
-print(X_train.shape, y_train.shape, ids_train.shape)
-print(X_test.shape, y_test.shape, ids_test.shape)
-print()
-
-combine_vals = False
-
-train_subsets = PRI_jet_num_split(y_train, X_train, ids_train, combine_vals)
-test_subsets = PRI_jet_num_split(y_test, X_test, ids_test, combine_vals)
-
-print(f"Number of train subsets: { len(train_subsets) }")
-print(f"Number of test subsets:  { len(test_subsets) }")
-print()
-
-assert len(train_subsets) == len(test_subsets)
-
-num_subsets = len(train_subsets)
-
-ids = np.array([])
-y_pred = np.array([])
 
 def sort_arr(ids, y_pred):
+    """ Utility function for sorting predictions by the id.
+
+    Parameters
+    ----------
+    ids: ndarray
+        The ids
+    y_pred: ndarray
+        The predictions
+
+    Returns
+    -------
+    Tuple (ndarray, ndarray)
+        Sorted labels and predictions
+    """
     idx = ids.argsort()
     return ids[idx], y_pred[idx]
 
 
-# Cross Validation 
-lambdas = np.logspace(-4, 0, 30) # if needed, change the space as appropriate
-gammas = np.logspace(-3, 3, 30) # if needed, change the space as appropriate
+# Locations of the train/test data and the submission files
+train_fname = "data/train.csv"
+test_fname = "data/test.csv"
+sumbission_fname = "data/submission.csv"
 
-training_accuracy = []
-testing_accuracy = []
+# Load the train/test data
+y_train, X_train, ids_train = load_csv_data(train_fname)
+y_test, X_test, ids_test = load_csv_data(test_fname)
 
+# Print out the shapes for convinience
+print("Shapes:")
+print(X_train.shape, y_train.shape, ids_train.shape)
+print(X_test.shape, y_test.shape, ids_test.shape)
+
+# Split the datasets into 8 subsets (do not combine groups 2 and 3)
+train_subsets = PRI_jet_num_split(y_train, X_train, ids_train, False)
+test_subsets = PRI_jet_num_split(y_test, X_test, ids_test, False)
+
+# Print the number of subsets and assert that their sizes are the same
+# If not, there is something wrong with the split functionality
+print(f"Number of train subsets: { len(train_subsets) }")
+print(f"Number of test subsets:  { len(test_subsets) }")
+assert len(train_subsets) == len(test_subsets)
+
+# Store the number of subsets for iteration
+num_subsets = len(train_subsets)
+
+# Initialize empty arrays for the ids and the predicted labels
+# These arrays will be populated by the models
+ids = np.array([])
+y_pred = np.array([])
+
+# -------------------------------------------------------------
+# Optimal parameters
+# -------------------------------------------------------------
+
+# Optimal degrees for the polynomial expansion
+max_degree = [3, 2, 3, 2, 3, 3, 3, 2]
+# Optimal learning rates
+gammas_opt = [7e-6, 5e-6, 5e-6, 5e-5, 5e-6, 1e-4, 2e-5, 2e-4]
+# Optimal regularization parameters
+lambdas_opt = [250, 100, 2, 1, 1e-1, 1e-1, 5, 10]
+
+# -------------------------------------------------------------
+# End optimal parameters
+# -------------------------------------------------------------
+
+# Iterate over each subset and build a model
+# The predictions of every single model are combined
 for i in range(num_subsets):
+    # Extract the train/test subsets
     y_train_subset, X_train_subset, ids_train_subset = train_subsets[i]
     y_test_subset, X_test_subset, ids_test_subset = test_subsets[i]
 
+    # Map the categorical output labels into [0, 1]
     y_train_subset = map_0_1(y_train_subset)
-
+    # Standardize the data
     X_train_subset, X_test_subset = standardize(X_train_subset, X_test_subset)
 
-    N, D = X_train_subset.shape
+    # Build the polynomial features and expand the data
+    print(f"Train shape before feature expansion: {str(X_train_subset.shape):>12}   Test shape: {str(X_test_subset.shape):>12}")
+    X_train_subset, X_test_subset = build_poly(X_train_subset, max_degree[i]), build_poly(X_test_subset, max_degree[i])
+    print(f"Train shape after  feature expansion: {str(X_train_subset.shape):>12}   Test shape: {str(X_test_subset.shape):>12}")
+    
+    # Set the maximum number of iterations for building the model
+    max_iters = 440
+    # Set batch size to 1 to enforce SGD
+    batch_size = 1
+    # Set the initial coefficients randomly
+    initial_w = np.random.rand(X_train_subset.shape[1])
 
-    initial_w = np.random.randn(D)
-    gamma = gammas[i]
-    lambda_ = lambdas_[i]
+    # Get the coefficients of the optimal regularized logistic regression model
+    w = get_model("LOG_REG_GD", y_train_subset, X_train_subset, initial_w, max_iters, gammas_opt[i], lambdas_opt[i], 1)
 
-    # need to chose optimal lambda and optimal gamma together
-    k_fold = 4 # can experiment with different numbers
-    max_iters = 500
-    optimal_lambda_, optimal_gamma = gamma_lambda_selection_cv(y_train_subset, X_train_subset, k_fold, lambdas, initial_w, max_iters, gammas)
+    # Get the predictions
+    y_pred_test = np.array(predict_labels(w, X_test_subset))
 
-    # selecting either gamma or lambda using cross validation
-    # model = 'logistic_regression' #change as appropriate
-    optimal_gamma = optimal_gamma_selection(y_train_subset, X_train_subset, k_fold, initial_w, max_iters, gammas, model)
-    optimal_lambda_ = optimal_lambda_selection(y_train_subset, X_train_subset, k_fold, initial_w, max_iters, lambdas, model)
-
-    print(f"Train shape: {str(X_train_subset.shape):>12}   Test shape: {str(X_test_subset.shape):>12}")
-    print()
-        
-    loss, w = reg_logistic_regression(y_train_subset, X_train_subset, lambda_, initial_w, 2000, gamma)
-
-    # accuracy using cross_validation for each subset
-    train_acc, test_acc = verifying_accuracy_cv(y_train, X_train, k_fold, w)
-    training_accuracy.append(train_acc)
-    testing_accuracy.append(test_acc)
-
-    y_pred_test = predict_labels(w, X_test_subset)
-
+    # Insert the ids and predictions to the ids and y_pred arrays
     ids = np.concatenate((ids, ids_test_subset))
     y_pred = np.concatenate((y_pred, y_pred_test))
 
-
-training_accuracy = sum(training_accuracy)/float(num_subsets)
-testing_accuracy = sum(testing_accuracy)/float(num_subsets)
-
+# Sort the ids and y_pred arrays
 ids, y_pred = sort_arr(ids, y_pred)
 
+# Create the submission CSV file
 create_csv_submission(ids, y_pred, sumbission_fname)
