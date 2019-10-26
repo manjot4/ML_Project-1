@@ -6,11 +6,11 @@ The  purpose  of this  project  was  to  showcase  how  machine  learning  can  
 
 Additionally, this project does exploratory data analysis to understand the dataset and the features, feature processing and engineering to clean the dataset and extract more meaningful information, use machine learning methods on real data, analyze the model and generate predictions using those methods.
 
-## Best submission
+## Best Submission
 
-We reached 80.3% accuracy at [AIcrowd](https://www.aicrowd.com/challenges/epfl-machine-learning-higgs-2019/) with multiple submissions. We choose submission ID **22324** as our final submission. The script `run.py` generates the same predictions.
+We reached 80.3% accuracy on [AIcrowd](https://www.aicrowd.com/challenges/epfl-machine-learning-higgs-2019/) with multiple submissions. We choose submission ID **22324** as our final one. The script `run.py` generates the same predictions.
 
-## Project structure
+## Project Structure
 
 The project is structured as follows:
 
@@ -34,7 +34,7 @@ NumPy 1.17.2
 
 ## Finding Hyperparameters
 
-You can run `tune_params.py` to see how we chose the optimal hyperparameters. If you are interested in finding optimal hyperparameters, you can see the coefficients in `run.py`. If you want to know more about how we found them, take a look at `cross_validation.py`. It contains implementations for doing grid search over the hyperparameter space and uses cross-validation to obtain the accuracy.
+You can run `tune_params.py` to see how we chose the optimal hyperparameters. If you are interested in finding optimal hyperparameters, you can see the coefficients in `run.py`. If you want to know more about how we found them, take a look at `cross_validation.py`. It contains the implementation for grid search over the hyperparameter space and later uses cross-validation to obtain the accuracy.
 
 ## Running
 
