@@ -1,32 +1,9 @@
-""" This file contains implementations (loss and gradient computation, and polynomial expansion) for all the models used in the project """
+""" This file contains implementations (loss and gradient computation, and polynomial expansion) of all the models used in the project """
 
 import numpy as np
-from matplotlib import pyplot as plt
-
-
-# Whether to enable ploting or not
-__should_plot = False
 
 
 # Main functions
-
-def __plot_loss(losses, title):
-    """ Utility function that plots the train losses.
-
-    Parameters
-    ----------
-    losses: array
-        The losses
-    title: string
-        The title of the plot
-    """
-    if __should_plot:
-        plt.plot(losses)
-        plt.title(title)
-        plt.xlabel("Iteration")
-        plt.ylabel("Loss")
-        plt.show()
-
 
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     """ Implementation of linear regression using gradient descent.
@@ -57,8 +34,6 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
         loss = compute_loss_least_squares(y, tx, w)
         w = w - gamma * gradient
         losses.append(loss)
-
-    __plot_loss(losses, "Least Squares using Gradient Descent")
 
     return w, losses[-1]
 
@@ -94,8 +69,6 @@ def least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma):
         loss = compute_loss_least_squares(y, tx, w)
         w = w - gamma * gradient
         losses.append(loss)
-
-    __plot_loss(losses, "Least Squares using Stochastic Gradient Descent")
 
     return w, losses[-1]
 
@@ -168,8 +141,6 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
         w = w - gamma * gradient
         losses.append(loss)
 
-    __plot_loss(losses, "Logistic Regression using Gradient Descent")
-
     return w, losses[-1]
 
 
@@ -206,8 +177,6 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
         w = w - gamma * gradient
         losses.append(loss)
 
-    __plot_loss(losses, "Regularized (L2) Logistic Regression using Gradient Descent")
-
     return w, losses[-1]
 
 
@@ -242,8 +211,6 @@ def reg_logistic_regression_L1(y, tx, lambda_, initial_w, max_iters, gamma):
         loss = compute_loss_reg_logistic_regression_L1(y, tx, w, lambda_)
         w = w - gamma * gradient
         losses.append(loss)
-
-    __plot_loss(losses, "Regularized (L1) Logistic Regression using Gradient Descent")
 
     return w, losses[-1]
 
@@ -280,8 +247,6 @@ def least_squares_GD_L1(y, tx, lambda_, initial_w, max_iters, gamma):
         loss = compute_loss_least_squares_L1(y, tx, w, lambda_)
         w = w - gamma * gradient
         losses.append(loss)
-
-    __plot_loss(losses, "Least Squares using Gradient Descent")
 
     return w, losses[-1]
 
