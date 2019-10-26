@@ -103,7 +103,7 @@ for i in range(num_subsets):
     print(f"Train shape after  feature expansion: {str(X_train_subset.shape):>12}   Test shape: {str(X_test_subset.shape):>12}")
     
     # Set the maximum number of iterations for building the model
-    max_iters = 300
+    max_iters = 440
     # Set batch size to 1 to enforce SGD
     batch_size = 1
     # Set the initial coefficients randomly
