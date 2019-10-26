@@ -63,12 +63,13 @@ def least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma):
     """
     w = initial_w
     losses = []
-
-    for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size, max_iters):
-        gradient = compute_gradient_least_squares(minibatch_y, minibatch_tx, w)
-        loss = compute_loss_least_squares(y, tx, w)
-        w = w - gamma * gradient
-        losses.append(loss)
+    
+    for i in range(max_iters):
+        for minibatch_y, minibatch_tx in batch_iter(y, tx, batch_size = batch_size, num_batches = 1):
+            gradient = compute_gradient_least_squares(minibatch_y, minibatch_tx, w)
+            loss = compute_loss_least_squares(y, tx, w)
+            w = w - gamma * gradient
+            losses.append(loss)
 
     return w, losses[-1]
 
