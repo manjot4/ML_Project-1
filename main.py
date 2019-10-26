@@ -52,7 +52,7 @@ print("Shapes:")
 print(X_train.shape, y_train.shape, ids_train.shape)
 print(X_test.shape, y_test.shape, ids_test.shape)
 
-# Split the datasets into 8 subsets (do not combine groups 2 and 3)
+# Split the datasets into 8 subsets
 train_subsets = PRI_jet_num_split(y_train, X_train, ids_train, False)
 test_subsets = PRI_jet_num_split(y_test, X_test, ids_test, False)
 
@@ -103,14 +103,14 @@ for i in range(num_subsets):
     print(f"Train shape after  feature expansion: {str(X_train_subset.shape):>12}   Test shape: {str(X_test_subset.shape):>12}")
     
     # Set the maximum number of iterations for building the model
-    max_iters = 440
+    max_iters = 300
     # Set batch size to 1 to enforce SGD
     batch_size = 1
     # Set the initial coefficients randomly
     initial_w = np.random.rand(X_train_subset.shape[1])
 
     # Get the coefficients of the optimal regularized logistic regression model
-    w = get_model("LOG_REG_GD", y_train_subset, X_train_subset, initial_w, max_iters, gammas_opt[i], lambdas_opt[i], 1)
+    w = get_model("LOG_REG_GD", y_train_subset, X_train_subset, initial_w, max_iters, gammas_opt[i], lambdas_opt[i], batch_size)
 
     # Get the predictions
     y_pred_test = np.array(predict_labels(w, X_test_subset))

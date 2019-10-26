@@ -60,7 +60,7 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
 
     __plot_loss(losses, "Least Squares using Gradient Descent")
 
-    return losses[-1], w
+    return w, losses[-1]
 
 
 def least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma):
@@ -97,7 +97,7 @@ def least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma):
 
     __plot_loss(losses, "Least Squares using Stochastic Gradient Descent")
 
-    return losses[-1], w
+    return w, losses[-1]
 
 
 def least_squares(y, tx):
@@ -116,7 +116,7 @@ def least_squares(y, tx):
         The last loss and learned weights
     """
     w = np.linalg.solve(tx.T.dot(tx), tx.T.dot(y))
-    return 1 / y.shape[0] * np.sum(np.power(y - tx.dot(w), 2)), w
+    return w, 1 / y.shape[0] * np.sum(np.power(y - tx.dot(w), 2))
 
 
 def ridge_regression(y, tx, lambda_):
@@ -135,7 +135,7 @@ def ridge_regression(y, tx, lambda_):
         The last loss and learned weights
     """
     w = np.linalg.solve(tx.T.dot(tx) + lambda_ * np.identity(tx.shape[1]), tx.T.dot(y))
-    return 1 / y.shape[0] * np.sum(np.power(y - tx.dot(w), 2)), w
+    return w, 1 / y.shape[0] * np.sum(np.power(y - tx.dot(w), 2))
 
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
@@ -170,7 +170,7 @@ def logistic_regression(y, tx, initial_w, max_iters, gamma):
 
     __plot_loss(losses, "Logistic Regression using Gradient Descent")
 
-    return losses[-1], w
+    return w, losses[-1]
 
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
@@ -208,7 +208,7 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
 
     __plot_loss(losses, "Regularized (L2) Logistic Regression using Gradient Descent")
 
-    return losses[-1], w
+    return w, losses[-1]
 
 
 def reg_logistic_regression_L1(y, tx, lambda_, initial_w, max_iters, gamma):
@@ -245,7 +245,7 @@ def reg_logistic_regression_L1(y, tx, lambda_, initial_w, max_iters, gamma):
 
     __plot_loss(losses, "Regularized (L1) Logistic Regression using Gradient Descent")
 
-    return losses[-1], w
+    return w, losses[-1]
 
 
 
@@ -283,7 +283,7 @@ def least_squares_GD_L1(y, tx, lambda_, initial_w, max_iters, gamma):
 
     __plot_loss(losses, "Least Squares using Gradient Descent")
 
-    return losses[-1], w
+    return w, losses[-1]
 
 
 

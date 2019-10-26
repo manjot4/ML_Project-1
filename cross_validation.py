@@ -87,28 +87,28 @@ def get_model(model, y, tx, initial_w, max_iters, gamma, lambda_, batch_size):
         The learned weights
     """
     if model == "MSE_GD":
-        _, w = least_squares_GD(y, tx, initial_w, max_iters, gamma)
+        w, _ = least_squares_GD(y, tx, initial_w, max_iters, gamma)
         
     elif model == "MSE_SGD":
-        _, w = least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma)
+        w, _ = least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma)
         
     elif model == "MSE_OPT":
-        _, w = least_squares(y, tx)
+        w, _ = least_squares(y, tx)
         
     elif model == "MSE_OPT_REG":
-        _, w = ridge_regression(y, tx, lambda_)
+        w, _ = ridge_regression(y, tx, lambda_)
         
     elif model == "LOG_GD":
-        _, w = logistic_regression(y, tx, initial_w, max_iters, gamma)
+        w, _ = logistic_regression(y, tx, initial_w, max_iters, gamma)
         
     elif model == "LOG_REG_GD":
-        _, w = reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma)
+        w, _ = reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma)
 
     elif model == "LOG_REG_L1":
-        _, w = reg_logistic_regression_L1(y, tx, lambda_, initial_w, max_iters, gamma)
+        w, _ = reg_logistic_regression_L1(y, tx, lambda_, initial_w, max_iters, gamma)
     
     elif model == "MSE_GD_L1":
-        _, w = least_squares_GD_L1(y, tx, lambda_, initial_w, max_iters, gamma)
+        w, _ = least_squares_GD_L1(y, tx, lambda_, initial_w, max_iters, gamma)
     
     else:
         raise UnknownModel
