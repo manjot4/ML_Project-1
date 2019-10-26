@@ -27,7 +27,7 @@ The only required dependencies are:
 NumPy 1.17.2
 ```
 
-# Finding Hyperparameters
+## Finding Hyperparameters
 
 If you are interested in finding optimal hyperparameters, take a look at `cross_validation.py` script. It contains implementations for doing grid search over the hyperparameter space and uses cross-validation to obtain the accuracy.
 
