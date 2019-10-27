@@ -299,7 +299,7 @@ def compute_loss_logistic_regression(y, tx, w):
     eps = 1e-5
     predictions = sigmoid(tx.dot(w))
     assert predictions.min() > -eps # make sure numbers are close to 0
-    loss = y.T.dot(np.log(predictions + eps)) + (1 - y).T.dot(np.log(1 - predictions + eps)) 
+    loss = y.T.dot(np.log(predictions + eps)) + (1 - y).T.dot(np.log(1 - predictions + eps)).squeeze()
     return -loss
 
 
@@ -323,7 +323,7 @@ def compute_loss_reg_logistic_regression(y, tx, w, lambda_):
     tuple
         Loss
     """
-    return compute_loss_logistic_regression(y, tx, w) + (lambda_ / 2) * np.matmul(w.T, w)
+    return compute_loss_logistic_regression(y, tx, w) + (lambda_ / 2) * np.matmul(w.T, w).squeeze()
 
 
 def compute_loss_reg_logistic_regression_L1(y, tx, w, lambda_):
