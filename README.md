@@ -38,7 +38,7 @@ You can run `tune_params.py` to see how we chose the optimal hyperparameters. If
 
 ## Running
 
-To build the models, the train and test datasets are required. Both of them are compressed to save space. Before executing the main script, unzip the data. After successfully unzipping the data, run the project by simply executing `python3 main.py`. This will output the predictions in a CSV file inside the `data` folder.
+To build the models, the train and test datasets are required. Both of them are compressed to save space. Before executing the run script, unzip the data. After successfully unzipping the data, run the project by simply executing `python3 run.py`. This will output the predictions in a CSV file inside the `data` folder.
 
 ## Authors
 
